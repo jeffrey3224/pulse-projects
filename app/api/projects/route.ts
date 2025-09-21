@@ -14,8 +14,12 @@ export async function GET(req: NextRequest) {
   const token = authHeader.split(" ")[1];
   const payload = verifyToken(token); 
 
-  const rows = await db.select().from(projects).where(eq(projects.userId, payload.id)); 
-  return NextResponse.json(rows, { status: 200 });
+  const allProjects = await db
+    .select()
+    .from(projects)
+    .where(eq(projects.userId, payload.id));
+
+    return NextResponse.json(allProjects, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
@@ -29,10 +33,10 @@ export async function POST(req: NextRequest) {
   
   const { title, description } = await req.json();
 
-  const inserted = await db
+  const [newProject] = await db
     .insert(projects)
     .values({ userId: payload.id, title, description })
     .returning();
 
-  return NextResponse.json(inserted[0], { status: 201})
+  return NextResponse.json(newProject, { status: 201})
 }

@@ -18,9 +18,18 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const steps = pgTable("steps", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(()=>projects.id),
+  title: text("title").notNull(),
+  order: integer("order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  completed: boolean("completed").default(false).notNull(),
+})
+
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").references(() => projects.id).notNull(),
+  stepId: integer("step_id").references(() => steps.id).notNull(),
   title: text("title").notNull(),
   completed: boolean("completed").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
