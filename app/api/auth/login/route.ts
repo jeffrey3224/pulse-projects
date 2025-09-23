@@ -5,7 +5,6 @@ import { eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/schema/db";
 import { users } from "@/schema/db/schema";
-import { signToken } from "@/lib/auth";
 
 const SECRET = process.env.JWT_SECRET || "dev-secret";
 const TOKEN_MAX_AGE = 60 * 60 * 24 * 7;
