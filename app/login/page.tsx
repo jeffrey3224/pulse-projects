@@ -1,13 +1,23 @@
 "use client"
+
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/AuthContext";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const { login, isAuthenticated, user, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("")
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/");
+    }
+  }, [isAuthenticated, router])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,6 +38,7 @@ export default function LoginPage() {
       }
 
       login(data.token);
+      router.push("/");
     }
     catch(err) {
       console.error(err);
@@ -47,19 +58,7 @@ export default function LoginPage() {
           />
       <div className="flex items-center justify-center">
       <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
-        {isAuthenticated ? (
-          <div className="text-center">
-            <h2 className="text-black text-xl font-bold mb-4">Welcome, {user?.name}</h2>
-            <button
-              onClick={logout}
-              className="w-full bg-gray-800 text-black py-2 rounded-md hover:bg-gray-700"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <>
-            <h2 className="text-xl font-bold mb-4 dark:text-black">Login</h2>
+            <h2 className="text-xl font-bold mb-4 dark:text-black">Login to your account</h2>
             {error && <p className="text-red-500 mb-2">{error}</p>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
@@ -82,10 +81,18 @@ export default function LoginPage() {
               >
                 Login
               </button>
+              <div className="w-full flex flex-row space-x-20 justify-center items-center">
+              <button onClick={() => signIn("google", {
+                callbackUrl: "/dashboard"
+              })}>
+                Login with Google
+              </button>
+              <button onClick={() => signIn("github")}>
+                Login with GitHub
+              </button>
+              </div>
               <p className="text-black">New User? Sign up <a href="/register" className="underline">here.</a></p>
             </form>
-          </>
-        )}
       </div>
     </div>
     </div>
