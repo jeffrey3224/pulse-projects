@@ -1,5 +1,6 @@
 "use client"
 
+import NavBar from "@/components/NavBar";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react"
@@ -18,7 +19,10 @@ export default function Home() {
   if (!user) return null;
 
   return (
+    <>
+    <NavBar/>
     <main>
+      <h1 className="text-white">Home</h1>
       <form>
         <input
           type="text"
@@ -27,5 +31,6 @@ export default function Home() {
         />
       </form>
     </main>
+    </>
   )
 }
