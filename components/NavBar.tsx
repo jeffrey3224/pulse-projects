@@ -6,8 +6,6 @@ import Link from "next/link";
 
 export default function NavBar() {
 
-
-
   return (
     <nav className="w-full flex flex-row py-5">
       <div className="flex flex-row px-40 justify-between w-full mx-auto">
@@ -22,7 +20,10 @@ export default function NavBar() {
             <IoHomeSharp size={25}/>
           </Link>
         
-        <GrProjects size={22}/>
+        <Link href="/projects">
+          <GrProjects size={22}/>
+        </Link>
+            
         <IoCalendar size={25}/>
         </div>
       </div>
