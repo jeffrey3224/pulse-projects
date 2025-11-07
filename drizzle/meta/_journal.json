@@ -15,6 +15,20 @@
       "when": 1758414184356,
       "tag": "0001_fresh_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1762492846428,
+      "tag": "0002_abnormal_donald_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1762493203708,
+      "tag": "0003_complex_dorian_gray",
+      "breakpoints": true
     }
   ]
 }
