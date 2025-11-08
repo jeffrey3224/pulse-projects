@@ -23,20 +23,29 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader) {
-    return NextResponse.json({ error: "not token provided"}, { status: 401 });
+  try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const token = authHeader.split(" ")[1];
+    const userPayload = verifyToken(token);
+
+    const { title, description, dueDate } = await req.json();
+    if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+
+    const inserted = await db
+      .insert(projects)
+      .values({
+        userId: userPayload.id,       // match DB column
+        title,
+        description: description || "",
+        dueDate: dueDate || null,     // send null if empty
+      })
+      .returning();
+
+    return NextResponse.json(inserted[0], { status: 201 });
+  } catch (err) {
+    console.error("❌ Error adding project:", err);
+    return NextResponse.json({ error: "Failed to add project" }, { status: 500 });
   }
-
-  const token = authHeader.split(" ")[1];
-  const payload = verifyToken(token);
-  
-  const { title, description } = await req.json();
-
-  const [newProject] = await db
-    .insert(projects)
-    .values({ userId: payload.id, title, description })
-    .returning();
-
-  return NextResponse.json(newProject, { status: 201})
 }

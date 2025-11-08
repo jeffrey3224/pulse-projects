@@ -1,23 +1,20 @@
+
 import { db } from "@/schema/db";
 import { projects, steps } from "@/schema/db/schema";
 import { verifyToken } from "./auth";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { eq, and } from "drizzle-orm";
 
-export async function authenticateProjectStep(
-  req: NextRequest,
-  projectId: number,
-  stepId: number
-): Promise<{ projectId: number; stepId: number; userId: number }> {
+export async function authenticateProject(req: NextRequest, projectId: number) {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader) throw new Error("No token provided");
+  if (!authHeader) return { error: "Unauthorized" };
 
   const token = authHeader.split(" ")[1];
   let payload;
   try {
-    payload = verifyToken(token);
+    payload = verifyToken(token); // should return { id: number, ... }
   } catch (err) {
-    throw new Error("Invalid or expired token");
+    return { error: "Unauthorized" };
   }
 
   const project = await db
@@ -25,14 +22,22 @@ export async function authenticateProjectStep(
     .from(projects)
     .where(and(eq(projects.id, projectId), eq(projects.userId, payload.id)));
 
-  if (project.length === 0) throw new Error("Project not found");
+  if (project.length === 0) return { error: "Unauthorized" };
+
+  return { projectId, userId: payload.id };
+}
+
+export async function authenticateProjectStep(req: NextRequest, projectId: number, stepId: number) {
+  const authResult = await authenticateProject(req, projectId);
+  if ("error" in authResult) return { error: authResult.error };
 
   const step = await db
     .select()
     .from(steps)
     .where(and(eq(steps.id, stepId), eq(steps.projectId, projectId)));
 
-  if (step.length === 0) throw new Error("Step not found");
+  if (step.length === 0) return { error: "Step not found" };
 
-  return { projectId, stepId, userId: payload.id };
+  return { projectId, stepId, userId: authResult.userId };
 }
+
