@@ -13,7 +13,7 @@ export const projects = pgTable("projects", {
   userId: integer("user_id").references(() => users.id).notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  dueDate: date("due_date").notNull(),
+  dueDate: date("due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

@@ -4,6 +4,7 @@ import { projects, steps } from "@/schema/db/schema";
 import { verifyToken } from "./auth";
 import { NextRequest } from "next/server";
 import { eq, and } from "drizzle-orm";
+import { useAuth } from "./AuthContext";
 
 export async function authenticateProject(req: NextRequest, projectId: number) {
   const authHeader = req.headers.get("authorization");

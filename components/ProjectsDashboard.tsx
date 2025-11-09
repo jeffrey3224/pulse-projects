@@ -1,16 +1,23 @@
+import { fetchSteps, fetchTasks } from "@/lib/api/projects";
 import { useAuth } from "@/lib/AuthContext";
-import { tasks } from "@/schema/db/schema";
 import { useEffect, useState } from "react";
-import ClipLoader from "react-spinners/ClipLoader";
+import { GridLoader } from "react-spinners";
+import { BsThreeDots } from "react-icons/bs";
+import EditMenu from "./EditMenu";
+import { FaCheckCircle } from "react-icons/fa";
+import { AiFillExclamationCircle } from "react-icons/ai";
 
-
-type Project = {
+export type Project = {
   id: number;
   title: string;
   description: string;
   createdAt: string;
   dueDate: string;
 };
+
+type Props = {
+  projects: Project[];
+}
 
 type Step = {
   id: number;
@@ -24,97 +31,115 @@ type Task = {
   completed: boolean;
 }
 
-export default function ProjectsDashboard() {
+export default function ProjectsDashboard({ projects }: Props) {
   const { token } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
   const [steps, setSteps] = useState<Record<number, Step[]>>({});
   const [tasks, setTasks] = useState<Record<number, Task[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Fetch all projects
-  async function fetchProjects(): Promise<Project[]> {
-    const res = await fetch("/api/projects", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error("Failed to fetch projects");
-    return res.json();
-  }
-
-  async function fetchSteps(projectId: number): Promise<Step[]> {
-    const res = await fetch(`/api/projects/${projectId}/steps`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!res.ok) throw new Error(`Failed to fetch steps for project ${projectId}`);
-    return res.json();
-  }
-
-  async function fetchTasks(stepId: number, projectId: number): Promise<Task[]> {
-    const res = await fetch(`/api/projects/${projectId}/steps/${stepId}/tasks`, {
-      headers: { Authorization: `Bearer ${token}`},
-    });
-    if (!res.ok) throw new Error(`Failed to fetch tasks for project ${projectId}`);
-    return res.json();
-  }
-  
+  const [editMenu, setEditMenu] = useState<Record<number, boolean>>({});
+  const [editCompletedStep, setEditCompletedStep] = useState<Record<number, boolean>>({});
+  const [editPendingStep, setEditPendingStep] = useState<Record<number, boolean>>({});
 
 
   useEffect(() => {
-    async function fetchAllData() {
+    async function fetchStepsAndTasks() {
+      if (!token) return;
+  
       try {
         setLoading(true);
-        setError(null);
-    
-        // 1️⃣ Fetch projects
-        const projectsData = await fetchProjects();
-        setProjects(projectsData);
-
+  
         const stepsMap: Record<number, Step[]> = {};
         const tasksMap: Record<number, Task[]> = {};
-    
+  
         await Promise.all(
-          projectsData.map(async (project) => {
-            const projectSteps = await fetchSteps(project.id);
-            stepsMap[project.id] = projectSteps;
-
-            await Promise.all(
-              projectSteps.map(async (step) => {
-                const stepTasks = await fetchTasks(step.id, project.id);
-                tasksMap[step.id] = stepTasks;
-              })
-            );
+          projects.map(async (project) => {
+            try {
+              // Fetch steps for this project
+              const projectSteps = await fetchSteps(token, project.id);
+              stepsMap[project.id] = projectSteps;
+  
+              // Fetch tasks for each step (safe individually)
+              await Promise.all(
+                projectSteps.map(async (step) => {
+                  try {
+                    const stepTasks = await fetchTasks(token, step.id, project.id);
+                    tasksMap[step.id] = stepTasks;
+                  } catch (err) {
+                    console.error(`Failed to fetch tasks for step ${step.id}:`, err);
+                    tasksMap[step.id] = []; // Fallback to an empty array
+                  }
+                })
+              );
+            } catch (err) {
+              console.error(`Failed to fetch steps for project ${project.id}:`, err);
+              stepsMap[project.id] = []; // Fallback to empty steps list
+            }
           })
         );
-    
-        // 5️⃣ Update state
+  
         setSteps(stepsMap);
         setTasks(tasksMap);
-    
       } catch (err) {
-        console.error(err);
-        setError("Error loading projects, steps, or tasks");
+        console.error("💥 Unexpected error fetching data:", err);
+        setError("Error loading steps or tasks");
       } finally {
         setLoading(false);
       }
     }
-    
-    fetchAllData();
-  }, [token]);
+  
+    if (projects.length) {
+      fetchStepsAndTasks();
+    }
+  }, [projects, token]);
+  
+
+  const handleMenu = (id: number) => {
+      setEditMenu(prev => ({
+        ...prev, 
+        [id]: !prev[id],
+      }))
+  }
+
+  const handleCloseMenu = (id: number) => {
+    setEditMenu(prev => ({
+      ...prev,
+      [id]: false,
+    }))
+  }
+
+  const handleCompletedStep = (id: number) => {
+    setEditCompletedStep(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }))
+  }
+
+  const handlePendingStep = (id: number) => {
+    setEditPendingStep(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }))
+  }
+
 
   if (loading) return (
     <div className="w-full flex flex-col justify-center items-center">
-    <ClipLoader
+    <GridLoader
         color={"#FF9400"}
-        size={150}
-        speedMultiplier={.5}
+        size={100}
+        speedMultiplier={.7}
         aria-label="Loading Spinner"
         data-testid="loader"
         
       />
-      <p>Loading projects...</p>
+      <p className="text-xl py-10">Loading projects...</p>
       </div>
     );
+
   if (error) return <p className="text-red-500">{error}</p>;
+
+  if (projects.length === 0) return <p className="text-xl">Start by creating a new project!</p>
 
   return (
     <div className="flex justify-center">
@@ -122,28 +147,100 @@ export default function ProjectsDashboard() {
         {projects.map((project) => (
           <div
             key={project.id}
-            className="w-[30vw] p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] max-w-[500px]"
+            className="w-[30vw] p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] max-w-[500px] relative"
           >
-            <p className="text-2xl font-bold">{project.title}</p>
-            <p>Due: {project.dueDate}</p>
+            <div className="flex justify-between items-start">
+              <p className="text-2xl font-bold">{project.title}</p>
+              <button onClick={() => handleMenu(project.id)}>
+                <BsThreeDots size={20}/>
+              </button>
+            </div>
+           
+           {project.dueDate && <p className="text-right mb-3">Due: {project.dueDate}</p>}
+
             <p className="text-md font-base">{project.description}</p>
             
-            <div>
-              {steps[project.id]?.map((step) => (
-                <div className="flex flex-row justify-between" key={step.id}>
-                  <p>{step.title}</p>
-                  <div>{step.completed ? "Completed" : "In Progress"}
-                    <div>
-                      {tasks[step.id]?.map((task) => (
-                        <div key={task.id}>
-                          {task.title}
+            {steps[project.id]?.length > 0 && (
+                <div className="w-full bg-zinc-800 rounded-lg p-2 mt-2 space-y-2">
+                  {steps[project.id]?.map((step) => (
+                    <div className="flex flex-col justify-between relative" key={step.id}>
+                      <div className="flex items-center justify-between">
+                        <p>{step.title}</p>
+                        {step.completed ? (
+                          <button onClick={() => handleCompletedStep(step.id)}>
+                            <FaCheckCircle color="green" size={20} />
+                          </button>
+                        ) : (
+                          <button onClick={() => handlePendingStep(step.id)}>
+                             <AiFillExclamationCircle color="#ede882" size={20} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Edit Completed Step Menu */}
+                      {editCompletedStep[step.id] && 
+                        <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
+                          <div className="flex flex-col">
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Rename
+                              </button>
+                            </div>
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Mark Incomplete
+                              </button>
+                            </div>
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Delete Step
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                      }
+
+                      {/* Edit Completed Step Menu */}
+                      {editPendingStep[project.id] && 
+                        <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
+                          <div className="flex flex-col">
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Rename
+                              </button>
+                            </div>
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Mark Complete
+                              </button>
+                            </div>
+                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <button className="text-left py-1 px-2">
+                                Delete Step
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+
+                      {/* Tasks for this step */}
+                      {tasks[step.id]?.length > 0 && (
+                        <div className="ml-4 mt-1">
+                          {tasks[step.id].map((task) => (
+                            <div key={task.id} className="text-sm text-gray-300">
+                              {task.title}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              )}
+
+            {// edit menu is absolute
+              editMenu[project.id] && <EditMenu id={project.id} onClose={() => handleCloseMenu(project.id)}/>
+            }
           </div>
         ))}
       </div>

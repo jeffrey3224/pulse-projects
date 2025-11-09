@@ -1,17 +1,14 @@
+import { Project } from "@/components/ProjectsDashboard";
 
 
-export async function fetchProjects(token: string) {
+export async function fetchProjects(token: string): Promise<Project[]> {
   const res = await fetch("/api/projects", {
-    method: "GET",
     headers: {
-      "Authorization": `Bearer ${token}`,
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.error || "Failed to fetch projects")
-  }
+  if (!res.ok) throw new Error("Failed to fetch projects");
 
   return res.json();
 }
@@ -51,4 +48,35 @@ export async function addProject(
     throw err;
   }
 }
+
+export async function fetchSteps(token: string, projectId: number) {
+  const res = await fetch(`/api/projects/${projectId}/steps`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch steps");
+  return res.json();
+}
+
+export async function fetchTasks(token: string, stepId: number, projectId: number) {
+  const url = `/api/projects/${projectId}/steps/${stepId}/tasks`;
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`❌ fetchTasks(${stepId}) failed [${res.status}]:`, text);
+      throw new Error(`Failed to fetch tasks (${res.status})`);
+    }
+
+    return res.json();
+  } catch (err) {
+    console.error(`🔥 fetchTasks error for step ${stepId}:`, err);
+    throw err;
+  }
+}
+
+
+
 

@@ -25,27 +25,46 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const token = authHeader.split(" ")[1];
     const userPayload = verifyToken(token);
+    const { title, description } = await req.json();
 
-    const { title, description, dueDate } = await req.json();
-    if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    if (!title) {
+      return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
 
     const inserted = await db
       .insert(projects)
       .values({
-        userId: userPayload.id,       // match DB column
+        userId: userPayload.id,
         title,
         description: description || "",
-        dueDate: dueDate || null,     // send null if empty
+        dueDate: null,
       })
-      .returning();
+      .returning({
+        id: projects.id,
+        title: projects.title,
+        description: projects.description,
+        dueDate: projects.dueDate,
+        createdAt: projects.createdAt,
+      });
+
+    if (!inserted.length) {
+      return NextResponse.json({ error: "Insert succeeded but returned nothing" }, { status: 500 });
+    }
 
     return NextResponse.json(inserted[0], { status: 201 });
   } catch (err) {
     console.error("❌ Error adding project:", err);
-    return NextResponse.json({ error: "Failed to add project" }, { status: 500 });
+    return NextResponse.json(
+      { error: `Failed to add project: ${err.message}` },
+      { status: 500 }
+    );
   }
 }
+
+
