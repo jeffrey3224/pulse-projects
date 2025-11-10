@@ -13,3 +13,21 @@ export async function fetchSteps(token: string) {
 
   return res.json();
 }
+
+export async function updateStepStatus(token: string, projectId: number, stepId: number, completed: boolean) {
+  const response = await fetch(`api/projects/${projectId}/steps/${stepId}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ completed }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update step status");
+  }
+
+  return response.json();
+}
+

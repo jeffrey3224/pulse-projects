@@ -26,15 +26,22 @@ export default function NavBar() {
           height={200}
         />
         <div className="flex flex-row space-x-20 items-center">
-          <Link href="/">
+          <Link href="/" className="bg-dary-gray hover:bg-zinc-800 h-10 w-10 flex items-center justify-center rounded-[20px]">
             <IoHomeSharp size={25}/>
           </Link>
             
-        <IoCalendar size={25}/>
-
+        <button>
+          <div className="bg-dary-gray hover:bg-zinc-800 h-10 w-10 flex items-center justify-center rounded-[20px]">
+            <IoCalendar size={25}/>
+          </div>
+        </button>
+        
         <div className="relative flex flex-end">
           <button onClick={handleSignOut}>
-            <FaUser size={22}/>
+            <div className="bg-dary-gray hover:bg-zinc-800 h-10 w-10 flex items-center justify-center rounded-[20px]">
+              <FaUser size={22}/>
+            </div>
+            
           </button>
 
           <div className={`absolute min-w-[175px] bg-dark-gray border-1 border-zinc-700 top-10 -left-40 rounded-md flex flex-col justify-center shadow-2xl ${signOut ? "block" : "hidden"}`}>

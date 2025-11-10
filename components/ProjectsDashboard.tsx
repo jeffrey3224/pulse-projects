@@ -3,9 +3,11 @@ import { useAuth } from "@/lib/AuthContext";
 import { useEffect, useState } from "react";
 import { GridLoader } from "react-spinners";
 import { BsThreeDots } from "react-icons/bs";
-import EditMenu from "./EditMenu";
+import EditMenu from "./ProjectMenu";
 import { FaCheckCircle } from "react-icons/fa";
 import { AiFillExclamationCircle } from "react-icons/ai";
+import ProjectMenu from "./ProjectMenu";
+import { updateStepStatus } from "@/lib/api/steps";
 
 export type Project = {
   id: number;
@@ -122,7 +124,29 @@ export default function ProjectsDashboard({ projects }: Props) {
     }))
   }
 
-
+  const handleToggleStepCompletion = async (projectId: number, stepId: number, currentStatus: boolean) => {
+    if (!token) return;
+  
+    try {
+      // Update backend
+      await updateStepStatus(token, projectId, stepId, !currentStatus);
+  
+      // Update frontend immediately
+      setSteps(prevSteps => {
+        const updatedSteps = { ...prevSteps };
+        updatedSteps[projectId] = updatedSteps[projectId].map(step =>
+          step.id === stepId ? { ...step, completed: !currentStatus } : step
+        );
+        return updatedSteps;
+      });
+      setEditCompletedStep(prev => ({ ...prev, [stepId]: false }));
+      setEditPendingStep(prev => ({ ...prev, [stepId]: false }));
+    } catch (err) {
+      console.error("Failed to update step status:", err);
+    }
+  };
+  
+  
   if (loading) return (
     <div className="w-full flex flex-col justify-center items-center">
     <GridLoader
@@ -149,11 +173,13 @@ export default function ProjectsDashboard({ projects }: Props) {
             key={project.id}
             className="w-[30vw] p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] max-w-[500px] relative"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start mb-3">
               <p className="text-2xl font-bold">{project.title}</p>
-              <button onClick={() => handleMenu(project.id)}>
-                <BsThreeDots size={20}/>
-              </button>
+                <button onClick={() => handleMenu(project.id)}>
+                  <div className="bg-dark-gray hover:bg-zinc-800 h-8 w-8 flex items-center justify-center rounded-[16px]">
+                  <BsThreeDots size={20}/>
+                  </div>
+                </button>
             </div>
            
            {project.dueDate && <p className="text-right mb-3">Due: {project.dueDate}</p>}
@@ -161,9 +187,9 @@ export default function ProjectsDashboard({ projects }: Props) {
             <p className="text-md font-base">{project.description}</p>
             
             {steps[project.id]?.length > 0 && (
-                <div className="w-full bg-zinc-800 rounded-lg p-2 mt-2 space-y-2">
+                <div className="w-full bg-zinc-800 rounded-lg px-2 mt-2">
                   {steps[project.id]?.map((step) => (
-                    <div className="flex flex-col justify-between relative" key={step.id}>
+                    <div className="flex flex-col justify-between relative border-b-[1px] border-zinc-500 last:border-none py-2" key={step.id}>
                       <div className="flex items-center justify-between">
                         <p>{step.title}</p>
                         {step.completed ? (
@@ -187,7 +213,7 @@ export default function ProjectsDashboard({ projects }: Props) {
                               </button>
                             </div>
                             <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
+                              <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
                                 Mark Incomplete
                               </button>
                             </div>
@@ -201,7 +227,7 @@ export default function ProjectsDashboard({ projects }: Props) {
                       }
 
                       {/* Edit Completed Step Menu */}
-                      {editPendingStep[project.id] && 
+                      {editPendingStep[step.id] && 
                         <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
                           <div className="flex flex-col">
                             <div className="border-t border-zinc-700 hover:bg-zinc-800">
@@ -210,7 +236,7 @@ export default function ProjectsDashboard({ projects }: Props) {
                               </button>
                             </div>
                             <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
+                              <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
                                 Mark Complete
                               </button>
                             </div>
@@ -239,7 +265,7 @@ export default function ProjectsDashboard({ projects }: Props) {
               )}
 
             {// edit menu is absolute
-              editMenu[project.id] && <EditMenu id={project.id} onClose={() => handleCloseMenu(project.id)}/>
+              editMenu[project.id] && <ProjectMenu id={project.id}/>
             }
           </div>
         ))}
