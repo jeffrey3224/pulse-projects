@@ -3,11 +3,11 @@ import { useAuth } from "@/lib/AuthContext";
 import { useEffect, useState } from "react";
 import { GridLoader } from "react-spinners";
 import { BsThreeDots } from "react-icons/bs";
-import EditMenu from "./ProjectMenu";
 import { FaCheckCircle } from "react-icons/fa";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import ProjectMenu from "./ProjectMenu";
-import { updateStepStatus } from "@/lib/api/steps";
+import { renameStep, updateStepStatus } from "@/lib/api/steps";
+import RenameStepModal from "./RenameStepModal";
 
 export type Project = {
   id: number;
@@ -39,9 +39,9 @@ export default function ProjectsDashboard({ projects }: Props) {
   const [tasks, setTasks] = useState<Record<number, Task[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editMenu, setEditMenu] = useState<Record<number, boolean>>({});
-  const [editCompletedStep, setEditCompletedStep] = useState<Record<number, boolean>>({});
-  const [editPendingStep, setEditPendingStep] = useState<Record<number, boolean>>({});
+  const [projectMenu, setProjectMenu] = useState<Record<number, boolean>>({});
+  const [activeStep, setActiveStep] = useState<number | null>(null);
+  const [renameStepMenu, setRenameStepMenu] = useState<Record<number, boolean>>({});
 
 
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function ProjectsDashboard({ projects }: Props) {
   
               // Fetch tasks for each step (safe individually)
               await Promise.all(
-                projectSteps.map(async (step) => {
+                projectSteps.map(async (step: Step) => {
                   try {
                     const stepTasks = await fetchTasks(token, step.id, project.id);
                     tasksMap[step.id] = stepTasks;
@@ -97,31 +97,30 @@ export default function ProjectsDashboard({ projects }: Props) {
   
 
   const handleMenu = (id: number) => {
-      setEditMenu(prev => ({
+      setProjectMenu(prev => ({
         ...prev, 
         [id]: !prev[id],
       }))
   }
 
   const handleCloseMenu = (id: number) => {
-    setEditMenu(prev => ({
+    setProjectMenu(prev => ({
       ...prev,
       [id]: false,
     }))
   }
 
-  const handleCompletedStep = (id: number) => {
-    setEditCompletedStep(prev => ({
+  const handleRenameModal = (id: number) => {
+    console.log("rename modal")
+    setRenameStepMenu(prev => ({
       ...prev,
       [id]: !prev[id],
     }))
   }
 
-  const handlePendingStep = (id: number) => {
-    setEditPendingStep(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }))
+  const handleStepMenu = (id: number) => {
+    setActiveStep(prev => (prev === id ? null : id));
+    
   }
 
   const handleToggleStepCompletion = async (projectId: number, stepId: number, currentStatus: boolean) => {
@@ -139,12 +138,30 @@ export default function ProjectsDashboard({ projects }: Props) {
         );
         return updatedSteps;
       });
-      setEditCompletedStep(prev => ({ ...prev, [stepId]: false }));
-      setEditPendingStep(prev => ({ ...prev, [stepId]: false }));
+      handleStepMenu(stepId);
     } catch (err) {
       console.error("Failed to update step status:", err);
     }
   };
+
+  const handleRenameStep = async (projectId: number, stepId: number, title: string) => {
+    if (!token) return;
+
+    try {
+      await renameStep(token, projectId, stepId, title);
+
+      setSteps(prevSteps => {
+        const updatedSteps = {...prevSteps};
+        updatedSteps[projectId] = updatedSteps[projectId].map(step => step.id === stepId ? { ...step, title } : step)
+
+        return updatedSteps
+      })
+    }
+
+    catch (err) {
+      console.error(err);
+    }
+  }
   
   
   if (loading) return (
@@ -193,18 +210,21 @@ export default function ProjectsDashboard({ projects }: Props) {
                       <div className="flex items-center justify-between">
                         <p>{step.title}</p>
                         {step.completed ? (
-                          <button onClick={() => handleCompletedStep(step.id)}>
+                          <button onClick={() => handleStepMenu(step.id)}>
                             <FaCheckCircle color="green" size={20} />
                           </button>
                         ) : (
-                          <button onClick={() => handlePendingStep(step.id)}>
+                          <button onClick={() => handleStepMenu(step.id)}>
                              <AiFillExclamationCircle color="#ede882" size={20} />
                           </button>
                         )}
                       </div>
 
-                      {/* Edit Completed Step Menu */}
-                      {editCompletedStep[step.id] && 
+                      {/* Step Menu */}
+                      {activeStep === step.id && 
+
+                      (
+                      step.completed ? 
                         <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
                           <div className="flex flex-col">
                             <div className="border-t border-zinc-700 hover:bg-zinc-800">
@@ -223,15 +243,15 @@ export default function ProjectsDashboard({ projects }: Props) {
                               </button>
                             </div>
                           </div>
-                        </div>
-                      }
+                        </div> 
 
-                      {/* Edit Completed Step Menu */}
-                      {editPendingStep[step.id] && 
+                        : 
+                        
                         <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
                           <div className="flex flex-col">
                             <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
+                              <button className="text-left py-1 px-2 w-full h-full"
+                              onClick={() => handleRenameModal(step.id)}>
                                 Rename
                               </button>
                             </div>
@@ -247,26 +267,19 @@ export default function ProjectsDashboard({ projects }: Props) {
                             </div>
                           </div>
                         </div>
+                      )
                       }
 
-                      {/* Tasks for this step */}
-                      {tasks[step.id]?.length > 0 && (
-                        <div className="ml-4 mt-1">
-                          {tasks[step.id].map((task) => (
-                            <div key={task.id} className="text-sm text-gray-300">
-                              {task.title}
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {renameStepMenu[step.id] && <RenameStepModal stepId={step.id} />}
                     </div>
                   ))}
                 </div>
               )}
 
             {// edit menu is absolute
-              editMenu[project.id] && <ProjectMenu id={project.id}/>
+              projectMenu[project.id] && <ProjectMenu id={project.id}/>
             }
+            
           </div>
         ))}
       </div>

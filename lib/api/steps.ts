@@ -31,3 +31,20 @@ export async function updateStepStatus(token: string, projectId: number, stepId:
   return response.json();
 }
 
+export async function renameStep(token: string, projectId: number, stepId: number, title: string) {
+  const response = await fetch(`api/projects${projectId}/steps/${stepId}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`, 
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title })
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update step name");
+  }
+
+  return response.json();
+}
+
