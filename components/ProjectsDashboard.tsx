@@ -7,7 +7,6 @@ import { FaCheckCircle } from "react-icons/fa";
 import { AiFillExclamationCircle } from "react-icons/ai";
 import ProjectMenu from "./ProjectMenu";
 import { renameStep, updateStepStatus } from "@/lib/api/steps";
-import RenameStepModal from "./RenameStepModal";
 
 export type Project = {
   id: number;
@@ -19,6 +18,7 @@ export type Project = {
 
 type Props = {
   projects: Project[];
+  onRenameStepClick: (stepId: number, stepName: string, projectId: number) => void;
 }
 
 type Step = {
@@ -33,7 +33,7 @@ type Task = {
   completed: boolean;
 }
 
-export default function ProjectsDashboard({ projects }: Props) {
+export default function ProjectsDashboard({ projects, onRenameStepClick }: Props) {
   const { token } = useAuth();
   const [steps, setSteps] = useState<Record<number, Step[]>>({});
   const [tasks, setTasks] = useState<Record<number, Task[]>>({});
@@ -41,8 +41,6 @@ export default function ProjectsDashboard({ projects }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [projectMenu, setProjectMenu] = useState<Record<number, boolean>>({});
   const [activeStep, setActiveStep] = useState<number | null>(null);
-  const [renameStepMenu, setRenameStepMenu] = useState<Record<number, boolean>>({});
-
 
   useEffect(() => {
     async function fetchStepsAndTasks() {
@@ -110,14 +108,6 @@ export default function ProjectsDashboard({ projects }: Props) {
     }))
   }
 
-  const handleRenameModal = (id: number) => {
-    console.log("rename modal")
-    setRenameStepMenu(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }))
-  }
-
   const handleStepMenu = (id: number) => {
     setActiveStep(prev => (prev === id ? null : id));
     
@@ -143,26 +133,6 @@ export default function ProjectsDashboard({ projects }: Props) {
       console.error("Failed to update step status:", err);
     }
   };
-
-  const handleRenameStep = async (projectId: number, stepId: number, title: string) => {
-    if (!token) return;
-
-    try {
-      await renameStep(token, projectId, stepId, title);
-
-      setSteps(prevSteps => {
-        const updatedSteps = {...prevSteps};
-        updatedSteps[projectId] = updatedSteps[projectId].map(step => step.id === stepId ? { ...step, title } : step)
-
-        return updatedSteps
-      })
-    }
-
-    catch (err) {
-      console.error(err);
-    }
-  }
-  
   
   if (loading) return (
     <div className="w-full flex flex-col justify-center items-center">
@@ -184,11 +154,11 @@ export default function ProjectsDashboard({ projects }: Props) {
 
   return (
     <div className="flex justify-center">
-      <div className="flex flex-wrap justify-start items-start gap-5 p-7 w-fit">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-7 w-full">
         {projects.map((project) => (
           <div
             key={project.id}
-            className="w-[30vw] p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] max-w-[500px] relative"
+            className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative"
           >
             <div className="flex justify-between items-start mb-3">
               <p className="text-2xl font-bold">{project.title}</p>
@@ -223,54 +193,38 @@ export default function ProjectsDashboard({ projects }: Props) {
                       {/* Step Menu */}
                       {activeStep === step.id && 
 
-                      (
-                      step.completed ? 
-                        <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
-                          <div className="flex flex-col">
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
-                                Rename
-                              </button>
+                        (
+                          <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
+                            <div className="flex flex-col">
+                              <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                                <button className="text-left py-1 px-2 w-full h-full"
+                                onClick={() => onRenameStepClick(step.id, step.title, project.id)}>
+                                  Rename
+                                </button>
+                              </div>
+                              
+                              {step.completed ?
+                              <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                                <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
+                                  Mark Incomplete
+                                </button>
+                              </div>
+                              : 
+                              <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                                <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
+                                  Mark Complete
+                                </button>
+                              </div>
+                              }
+                              <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                                <button className="text-left py-1 px-2">
+                                  Delete Step
+                                </button>
+                              </div>
                             </div>
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
-                                Mark Incomplete
-                              </button>
-                            </div>
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
-                                Delete Step
-                              </button>
-                            </div>
-                          </div>
-                        </div> 
-
-                        : 
-                        
-                        <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
-                          <div className="flex flex-col">
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2 w-full h-full"
-                              onClick={() => handleRenameModal(step.id)}>
-                                Rename
-                              </button>
-                            </div>
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2" onClick={() => handleToggleStepCompletion(project.id, step.id, step.completed)}>
-                                Mark Complete
-                              </button>
-                            </div>
-                            <div className="border-t border-zinc-700 hover:bg-zinc-800">
-                              <button className="text-left py-1 px-2">
-                                Delete Step
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )
+                          </div> 
+                        )
                       }
-
-                      {renameStepMenu[step.id] && <RenameStepModal stepId={step.id} />}
                     </div>
                   ))}
                 </div>

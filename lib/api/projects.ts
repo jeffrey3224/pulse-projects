@@ -77,6 +77,23 @@ export async function fetchTasks(token: string, stepId: number, projectId: numbe
   }
 }
 
+export async function renameProject(token: string, projectId: number, title: string) {
+  const response = await fetch(`api/projects${projectId}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`, 
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title: title })
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to update project name");
+  }
+
+  return response.json();
+}
+
 
 
 

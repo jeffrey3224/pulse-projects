@@ -32,13 +32,14 @@ export async function updateStepStatus(token: string, projectId: number, stepId:
 }
 
 export async function renameStep(token: string, projectId: number, stepId: number, title: string) {
-  const response = await fetch(`api/projects${projectId}/steps/${stepId}`, {
+  console.log(projectId, stepId, title)
+  const response = await fetch(`api/projects/${projectId}/steps/${stepId}`, {
     method: "PATCH",
     headers: {
       "Authorization": `Bearer ${token}`, 
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ title })
+    body: JSON.stringify({ title: title })
   });
 
   if (!response.ok) {
