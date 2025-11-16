@@ -1,5 +1,6 @@
 import { renameStep } from "@/lib/api/steps";
 import { useAuth } from "@/lib/AuthContext";
+import { useProjectStore } from "@/lib/store/projectStore";
 import { useState } from "react";
 
 type Props = {
@@ -8,13 +9,15 @@ type Props = {
   stepName: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (newTitle: string) => void;
 }
 
-export default function RenameStepModal({stepId, stepName, projectId, isOpen, onClose}: Props) {
+export default function RenameStepModal({stepId, stepName, projectId, isOpen, onClose, onSuccess}: Props) {
 
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
-  const{ token } = useAuth();
+  const { token } = useAuth();
+  const { setActiveStep } = useProjectStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,8 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
     try {
       
       setLoading(true);
-      await renameStep(token, stepId, projectId, newName)
+      await renameStep(token, projectId, stepId, newName)
+      onSuccess?.(newName);
     }
      
     catch (err) {
@@ -33,9 +37,13 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
     finally {
       setLoading(false);
       onClose();
+      setActiveStep(null);
     }
-      
+  }
 
+  const handleClose = () => {
+    onClose()
+    setActiveStep(null);
   }
 
   return (
@@ -43,7 +51,7 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
     {isOpen && 
     (<div className="fixed inset-0 flex items-center justify-center bg-black/75 z-50">
       <div className="bg-[#1e1e1e] p-6 rounded-2xl shadow-xl w-[90%] max-w-xl">
-        <h2 className="text-2xl font-bold mb-4">Rename {`${stepName}`}</h2>
+        <h2 className="text-2xl font-bold mb-4">Rename Step {`"${stepName}"`}</h2>
         <form onSubmit = {handleSubmit}>
           <input
               name="title"
@@ -55,7 +63,7 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
             <div className="flex justify-end gap-2">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 rounded bg-zinc-700 hover:bg-zinc-600"
               >
                 Cancel
@@ -64,14 +72,13 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 rounded bg-primary hover:bg-orange-600 text-black font-bold"
+                className="px-4 py-2 rounded bg-primary hover:bg-orange-400 text-black font-bold"
               >
                 {loading ? "Adding..." : "Rename Step"}
               </button>
             </div>
           </form>
-      </div>
-      
+      </div> 
     </div>)
     }
     </>

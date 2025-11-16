@@ -79,3 +79,29 @@ export async function PATCH(
     return NextResponse.json({ error: "Error updating step" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { projectId: string; stepId: string } }
+) {
+  try {
+    const { projectId, stepId } = await authenticateProjectStep(
+      req,
+      Number(params.projectId),
+      Number(params.stepId)
+    );
+
+    const deleted = await db
+      .delete(steps)
+      .where(and(eq(steps.id, stepId), eq(steps.projectId, projectId)))
+      .returning();
+
+    if (deleted.length === 0) {
+      return NextResponse.json({ error: "Step not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true }, { status: 200 })
+  } catch (err) {
+    console.error(err);
+  };
+  return NextResponse.json({ error: "Eror deleting step"})
+}

@@ -1,5 +1,5 @@
-export async function fetchSteps(token: string) {
-  const res = await fetch("/api/steps", {
+export async function fetchSteps(token: string, projectId: number) {
+  const res = await fetch(`/api/projects/${projectId}/steps`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${token}`,
@@ -32,7 +32,7 @@ export async function updateStepStatus(token: string, projectId: number, stepId:
 }
 
 export async function renameStep(token: string, projectId: number, stepId: number, title: string) {
-  console.log(projectId, stepId, title)
+
   const response = await fetch(`api/projects/${projectId}/steps/${stepId}`, {
     method: "PATCH",
     headers: {
@@ -48,4 +48,5 @@ export async function renameStep(token: string, projectId: number, stepId: numbe
 
   return response.json();
 }
+
 
