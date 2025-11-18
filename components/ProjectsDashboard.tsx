@@ -25,6 +25,7 @@ export default function ProjectsDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [projectMenu, setProjectMenu] = useState<Record<number, boolean>>({});
   const { projects, setProjects } = useProjectStore();
+  const [sortOldest, setSortOldest] = useState(true);
 
   useEffect(() => {
     async function fetchProjectsData() {
@@ -67,11 +68,21 @@ export default function ProjectsDashboard() {
   const handleMenu = (id: number) =>
     setProjectMenu((prev) => ({ ...prev, [id]: !prev[id] }));
 
+  const handleSort = () => {
+    setSortOldest((prev) => !prev);
+  }
+
 
   return (
+    <>
+    <div className="w-full">
+        <button onClick={handleSort} className={`${sortOldest ? "bg-primary font-bold text-black px-3 rounded-2xl hover:cursor-pointer" : "bg-transparent border-2 border-zinc-700"}`}>
+          Sort by oldest
+        </button>
+      </div>
     <div className="flex justify-center">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-7 w-full">
-        {projects.map((project) => (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
+        {projects.sort((a,b) => sortOldest ? a.id - b.id : b.id - a.id).map((project) => (
           <div
             key={project.id}
             className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative"
@@ -127,7 +138,7 @@ export default function ProjectsDashboard() {
 
                           <div className="border-t border-zinc-700 hover:bg-zinc-800">
                             <button className="text-left py-1 px-2"
-                            onClick={() => openDeleteStepModal(step.id)}>Delete Step</button>
+                            onClick={() => openDeleteStepModal(step.id, project.id)}>Delete Step</button>
                           </div>
                         </div>
                       </div>
@@ -142,5 +153,6 @@ export default function ProjectsDashboard() {
         ))}
       </div>
     </div>
+    </>
   );
 }

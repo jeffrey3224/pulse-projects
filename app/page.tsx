@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Project } from "@/lib/types/projects";
 import DeleteStepModal from "@/components/Modals/DeleteStepModal";
+import ProjectsBarGraph from "@/components/ProjectBarGraph";
+import ProjectLineGraph from "@/components/ProjectLineGraph";
 
 
 export default function Home() {
@@ -26,6 +28,8 @@ export default function Home() {
     renamingStepId,
     renamingStepName,
     deletingStepId,
+    deletingStepProjectId,
+    closeDeleteStepModal,
     openRenameModal,
     closeRenameModal,
     updateStepTitle,
@@ -80,7 +84,15 @@ export default function Home() {
           </button>
         </div>
 
-        <ProjectsDashboard />
+        <div className="px-15">
+          <div className="grid grid-cols-2 gap-5 min-w-[200px] pb-10">
+            <ProjectsBarGraph height={300} width={900}/>
+            <ProjectLineGraph />
+          </div>
+          
+          <ProjectsDashboard />
+        </div>
+        
 
         <AddProjectModal
           isOpen={showAddProjectsModal}
@@ -99,6 +111,9 @@ export default function Home() {
 
         <DeleteStepModal
         isOpen={deletingStepId !== null}
+        projectId={deletingStepProjectId}
+        stepId={deletingStepId}
+        onClose={closeDeleteStepModal}
         />
       </main>
     </>

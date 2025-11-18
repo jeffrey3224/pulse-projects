@@ -9,6 +9,7 @@ export interface Project {
   title: string;
   description: string;
   createdAt: string;
+  completedAt: string;
   dueDate?: string;
   steps: Step[]
 }

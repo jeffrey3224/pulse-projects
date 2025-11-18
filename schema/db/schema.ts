@@ -15,7 +15,7 @@ export const projects = pgTable("projects", {
   description: text("description").notNull(),
   dueDate: date("due_date"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  completedAt: timestamp("completed_at"),
 });
 
 export const steps = pgTable("steps", {

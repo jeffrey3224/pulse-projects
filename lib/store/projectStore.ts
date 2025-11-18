@@ -6,10 +6,12 @@ export interface ProjectStore {
   projects: Project[];
   setProjects: (projects: Project[]) => void;
 
+  loadProjects: (token: string) => void;
+
   updateStepTitle: (projectId: number, stepId: number, newTitle: string) => void;
   toggleStepCompletion: (token: string, projectId: number, stepId: number, stepsMenu: boolean) => void;
 
-  openDeleteStepModal: (stepId: number) => void;
+  openDeleteStepModal: (stepId: number, projectId: number) => void;
   closeDeleteStepModal: () => void;
 
   deleteStep: (token: string, projectId: number, stepId: number) => void;
@@ -19,17 +21,41 @@ export interface ProjectStore {
   renamingProjectId: number | null;
   renamingStepId: number | null;
   renamingStepName: string | null;
+  deletingStepProjectId: number | null;
 
   activeStep: number | null;
   setActiveStep: (stepId: number | null) => void;
 
   openRenameModal: (projectId: number, stepId: number, stepName: string) => void;
   closeRenameModal: () => void;
+
+  completeProject: (token: string, projectId: number) => void;
 }
 
 export const useProjectStore = create<ProjectStore>((set) => ({
   projects: [],
 
+  loadProjects: async (token: string) => {
+    if (!token) return;
+  
+    try {
+      const res = await fetch("/api/projects", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      if (!res.ok) {
+        console.error("Failed to load projects");
+        return;
+      }
+  
+      const data = await res.json();
+  
+      set({ projects: data });
+    } catch (err) {
+      console.error("Error loading projects", err);
+    }
+  },
+  
   setProjects: (projects) => set({ projects }),
 
   updateStepTitle: (projectId, stepId, newTitle) =>
@@ -61,16 +87,18 @@ export const useProjectStore = create<ProjectStore>((set) => ({
           return {
             ...project,
             steps: project.steps?.map((step) => {
+              
               if (step.id !== stepId) return step;
               updatedStatus = !step.completed; 
 
               return { ...step, completed: updatedStatus };
+
             }),
           };
         }),
         activeStep: stepsMenu ? null : state.activeStep,
       }));
-    
+      
       if (updatedStatus !== undefined) {
         try {
           await updateStepStatus(token, projectId, stepId, updatedStatus);
@@ -104,6 +132,7 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   renamingStepId: null,
   renamingStepName: null,
   deletingStepId: null,
+  deletingStepProjectId: null,
 
   openRenameModal: (projectId, stepId, stepName) =>
     set({
@@ -119,11 +148,32 @@ export const useProjectStore = create<ProjectStore>((set) => ({
       renamingStepName: null,
     }),
 
-  openDeleteStepModal: (stepId) => set({
+  openDeleteStepModal: (stepId, projectId) => set({
       deletingStepId: stepId,
+      deletingStepProjectId: projectId
   }),
 
   closeDeleteStepModal: () => set({
       deletingStepId: null
   }),
+
+  completeProject: async (token: string, projectId: number) => {
+    if (!token) return;
+
+    try {
+      await fetch(`/api/projects/${projectId}`, {
+        method: "PATCH",
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: true }),
+      });
+  
+      set((state) => ({
+        projects: state.projects.map(p =>
+          p.id === projectId ? { ...p, completedAt: new Date().toISOString() } : p
+        ),
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }));

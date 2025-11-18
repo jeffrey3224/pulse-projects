@@ -59,12 +59,45 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(inserted[0], { status: 201 });
   } catch (err) {
-    console.error("❌ Error adding project:", err);
+    console.error("Error adding project:", err);
     return NextResponse.json(
       { error: `Failed to add project: ${err.message}` },
       { status: 500 }
     );
   }
 }
+
+export async function PATCH(req: NextRequest, { params }: { params: { projectId: string } }) {
+  try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const payload = verifyToken(token);
+    const { projectId } = params;
+    const body = await req.json();
+    const { completed } = body; 
+
+    const completedAt = completed ? new Date() : null;
+
+    const updated = await db
+      .update(projects)
+      .set({ completedAt })
+      .where(eq(projects.id, Number(projectId)))
+      .returning();
+
+    if (!updated.length) {
+      return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    return NextResponse.json(updated[0], { status: 200 });
+  } catch (err) {
+    console.error("Error updating project:", err);
+    return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
+  }
+}
+
 
 
