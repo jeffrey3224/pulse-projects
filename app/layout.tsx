@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/lib/AuthContext";
+import NavBar from "@/components/NavBar";
 
 export const metadata: Metadata = {
   title: "Pulse | Project Management",

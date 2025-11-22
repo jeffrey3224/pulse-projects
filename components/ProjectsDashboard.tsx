@@ -10,6 +10,9 @@ import ProjectMenu from "./ProjectMenu";
 import { useEffect, useState } from "react";
 import { fetchSteps } from "@/lib/api/steps";
 import { fetchProjects } from "@/lib/api/projects";
+import Link from "next/link";
+import ProjectsBarGraph from "./ProjectBarGraph";
+import ProjectLineGraph from "./ProjectLineGraph";
 
 export default function ProjectsDashboard() {
   const { token, user } = useAuth();
@@ -47,12 +50,13 @@ export default function ProjectsDashboard() {
         setError("Failed to load projects");
       } finally {
         setLoading(false);
+        console.log(projects.map(p => ({ id: p.id, steps: p.steps })));
+
       }
     }
   
     fetchProjectsData();
   }, [token, setProjects]);
-  
 
   if (loading)
     return (
@@ -72,23 +76,33 @@ export default function ProjectsDashboard() {
     setSortOldest((prev) => !prev);
   }
 
-
   return (
     <>
+      {!loading && 
+        (
+          <div className="flex flex-row gap-5 min-w-[200px] pb-10">
+            <ProjectsBarGraph height={300} width={900}/>
+            <ProjectLineGraph />
+
+          </div>
+        )
+      }
     <div className="w-full">
-        <button onClick={handleSort} className={`${sortOldest ? "bg-primary font-bold text-black px-3 rounded-2xl hover:cursor-pointer" : "bg-transparent border-2 border-zinc-700"}`}>
-          Sort by oldest
-        </button>
-      </div>
+      <button onClick={handleSort} className={`${sortOldest ? "bg-primary font-bold text-black px-3 rounded-2xl hover:cursor-pointer" : "bg-transparent border-2 border-zinc-700"}`}>
+        Sort by oldest
+      </button>
+    </div>
     <div className="flex justify-center">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
         {projects.sort((a,b) => sortOldest ? a.id - b.id : b.id - a.id).map((project) => (
           <div
             key={project.id}
-            className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative"
+            className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative overflow-hidden"
           >
             <div className="flex justify-between items-start mb-3">
-              <p className="text-2xl font-bold">{project.title}</p>
+              <Link href={`/projects/${project.id}`}>
+                 <p className="text-2xl font-bold">{project.title}</p>
+              </Link>
               <button onClick={() => handleMenu(project.id)}>
                 <div className="bg-dark-gray hover:bg-zinc-800 h-8 w-8 flex items-center justify-center rounded-[16px]">
                   <BsThreeDots size={20} />
@@ -100,7 +114,7 @@ export default function ProjectsDashboard() {
             <p className="text-md font-base">{project.description}</p>
 
             {project.steps?.length > 0 && (
-              <div className="w-full bg-zinc-800 rounded-lg px-2 mt-2">
+              <div className="w-full bg-zinc-800 rounded-lg px-2 mt-2 overflow-y-scroll max-h-[180px]">
                 {project.steps.map((step) => (
                   <div
                     className="flex flex-col justify-between relative border-b-[1px] border-zinc-500 last:border-none py-2"

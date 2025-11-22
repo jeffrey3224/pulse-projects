@@ -85,11 +85,6 @@ export default function Home() {
         </div>
 
         <div className="px-15">
-          <div className="grid grid-cols-2 gap-5 min-w-[200px] pb-10">
-            <ProjectsBarGraph height={300} width={900}/>
-            <ProjectLineGraph />
-          </div>
-          
           <ProjectsDashboard />
         </div>
         
