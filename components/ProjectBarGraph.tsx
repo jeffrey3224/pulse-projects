@@ -34,7 +34,7 @@ export default function ProjectsBarGraph({height, width}: Props) {
   }, [projects]);
 
   return (
-    <div className="w-full h-[350px] bg-dark-gray rounded-2xl border-2 border-zinc-700 p-5">
+    <div className="w-full h-[350px] bg-dark-gray rounded-2xl border-1 border-zinc-700 p-5">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ left: 40, right: 20, top: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="7 3" />

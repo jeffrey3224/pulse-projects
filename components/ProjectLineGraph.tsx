@@ -43,7 +43,7 @@ export default function ProjectLineGraph() {
   }, [projects]);
 
   return (
-    <div className="bg-dark-gray rounded-2xl border-2 border-zinc-700 p-5 w-full">
+    <div className="bg-dark-gray rounded-2xl border-1 border-zinc-700 p-5 w-full">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{ left: 40, right: 20, top: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="7 3" />

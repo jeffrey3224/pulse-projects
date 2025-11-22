@@ -15,7 +15,7 @@ import ProjectsBarGraph from "./ProjectBarGraph";
 import ProjectLineGraph from "./ProjectLineGraph";
 
 export default function ProjectsDashboard() {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const {
     openRenameModal,
     toggleStepCompletion,
@@ -28,7 +28,7 @@ export default function ProjectsDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [projectMenu, setProjectMenu] = useState<Record<number, boolean>>({});
   const { projects, setProjects } = useProjectStore();
-  const [sortOldest, setSortOldest] = useState(true);
+  const [sorting, setSorting] = useState<string>("oldest");
 
   useEffect(() => {
     async function fetchProjectsData() {
@@ -72,9 +72,23 @@ export default function ProjectsDashboard() {
   const handleMenu = (id: number) =>
     setProjectMenu((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const handleSort = () => {
-    setSortOldest((prev) => !prev);
-  }
+  const sortingAlg = (a, b) => {
+    if (sorting === "newest") {
+      return b.id - a.id;
+    }
+  
+    if (sorting === "oldest") {
+      return a.id - b.id;
+    }
+  
+    if (sorting === "due-date") {
+      const aTime = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+      const bTime = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+      return aTime - bTime;
+    }
+  
+    return 0;
+  };
 
   return (
     <>
@@ -87,19 +101,22 @@ export default function ProjectsDashboard() {
           </div>
         )
       }
-    <div className="w-full">
-      <button onClick={handleSort} className={`${sortOldest ? "bg-primary font-bold text-black px-3 rounded-2xl hover:cursor-pointer" : "bg-transparent border-2 border-zinc-700"}`}>
-        Sort by oldest
-      </button>
+    <div className="w-full flex justify-end pb-5">
+      <label htmlFor={"sorting-options"}>Sort Projects:</label> 
+      <select id="sorting-options" value={sorting} onChange={(e) => setSorting(e.target.value)} className="border-1 border-zinc-700 min-w-[150px] ml-5">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="due-date">Due Date</option>
+      </select> 
     </div>
+
     <div className="flex justify-center">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
-        {projects.sort((a,b) => sortOldest ? a.id - b.id : b.id - a.id).map((project) => (
+        {projects.sort((a,b) => sortingAlg(a,b)).map((project) => (
           <div
             key={project.id}
-            className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative overflow-hidden"
-          >
-            <div className="flex justify-between items-start mb-3">
+            className="p-5 rounded-2xl bg-[#171717] border-1 border-zinc-700 min-w-[325px] relative">
+            <div className="flex justify-between items-start mb-1">
               <Link href={`/projects/${project.id}`}>
                  <p className="text-2xl font-bold">{project.title}</p>
               </Link>
@@ -110,14 +127,14 @@ export default function ProjectsDashboard() {
               </button>
             </div>
 
-            {project.dueDate && <p className="text-right mb-3">Due: {project.dueDate}</p>}
+            {project.dueDate && <p className="text-left mb-3">Due: {project.dueDate}</p>}
             <p className="text-md font-base">{project.description}</p>
 
             {project.steps?.length > 0 && (
-              <div className="w-full bg-zinc-800 rounded-lg px-2 mt-2 overflow-y-scroll max-h-[180px]">
+              <div className="w-full bg-zinc-800 rounded-lg px-2 mt-2">
                 {project.steps.map((step) => (
                   <div
-                    className="flex flex-col justify-between relative border-b-[1px] border-zinc-500 last:border-none py-2"
+                    className="flex flex-col justify-between relative border-b-[1px] border-zinc-600 last:border-none py-2"
                     key={step.id}
                   >
                     <div className="flex items-center justify-between">
@@ -128,7 +145,7 @@ export default function ProjectsDashboard() {
                     </div>
 
                     {activeStep === step.id && (
-                      <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-10 shadow-2xl">
+                      <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-10 right-0 z-20 shadow-2xl">
                         <div className="flex flex-col">
                           <div className="border-t border-zinc-700 hover:bg-zinc-800">
                             <button
@@ -159,11 +176,15 @@ export default function ProjectsDashboard() {
                     )}
                   </div>
                 ))}
+                
               </div>
             )}
 
             {projectMenu[project.id] && <ProjectMenu id={project.id} />}
+            
+
           </div>
+          
         ))}
       </div>
     </div>
