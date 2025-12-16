@@ -17,17 +17,17 @@ export default function RenameStepModal({stepId, stepName, projectId, isOpen, on
   const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const { token } = useAuth();
-  const { setActiveStep } = useProjectStore();
+  const { setActiveStep, updateStepTitle } = useProjectStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !stepId || !projectId) return ;
 
     try {
-      
       setLoading(true);
       await renameStep(token, projectId, stepId, newName)
       onSuccess?.(newName);
+      updateStepTitle(projectId, stepId, newName);
     }
      
     catch (err) {

@@ -1,5 +1,4 @@
-import { Project } from "@/components/ProjectsDashboard";
-
+import { Project } from "../types/projects";
 
 export async function fetchProjects(token: string): Promise<Project[]> {
   const res = await fetch("/api/projects", {
@@ -66,7 +65,7 @@ export async function fetchTasks(token: string, stepId: number, projectId: numbe
 
     if (!res.ok) {
       const text = await res.text();
-      console.error(`❌ fetchTasks(${stepId}) failed [${res.status}]:`, text);
+      console.error(`fetchTasks(${stepId}) failed [${res.status}]:`, text);
       throw new Error(`Failed to fetch tasks (${res.status})`);
     }
 
@@ -78,7 +77,7 @@ export async function fetchTasks(token: string, stepId: number, projectId: numbe
 }
 
 export async function renameProject(token: string, projectId: number, title: string) {
-  const response = await fetch(`api/projects${projectId}`, {
+  const response = await fetch(`/api/projects/${projectId}`, {
     method: "PATCH",
     headers: {
       "Authorization": `Bearer ${token}`, 

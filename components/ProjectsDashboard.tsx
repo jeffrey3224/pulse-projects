@@ -17,7 +17,7 @@ import ProjectLineGraph from "./ProjectLineGraph";
 export default function ProjectsDashboard() {
   const { token } = useAuth();
   const {
-    openRenameModal,
+    openRenameStepModal,
     toggleStepCompletion,
     activeStep,
     setActiveStep,
@@ -110,7 +110,7 @@ export default function ProjectsDashboard() {
       </select> 
     </div>
 
-    <div className="flex justify-center">
+    <div className="flex justify-center pb-5">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full">
         {projects.sort((a,b) => sortingAlg(a,b)).map((project) => (
           <div
@@ -151,7 +151,7 @@ export default function ProjectsDashboard() {
                             <button
                               className="text-left py-1 px-2 w-full h-full"
                               onClick={() =>
-                                openRenameModal(project.id, step.id, step.title)
+                                openRenameStepModal(project.id, step.id, step.title)
                               }
                             >
                               Rename
@@ -180,9 +180,8 @@ export default function ProjectsDashboard() {
               </div>
             )}
 
-            {projectMenu[project.id] && <ProjectMenu id={project.id} />}
+            {projectMenu[project.id] && <ProjectMenu id={project.id} name={project.title} />}
             
-
           </div>
           
         ))}

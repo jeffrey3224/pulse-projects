@@ -12,8 +12,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Project } from "@/lib/types/projects";
 import DeleteStepModal from "@/components/Modals/DeleteStepModal";
-import ProjectsBarGraph from "@/components/ProjectBarGraph";
-import ProjectLineGraph from "@/components/ProjectLineGraph";
+import RenameProjectModal from "@/components/Modals/RenameProjectModal";
 
 
 export default function Home() {
@@ -24,14 +23,15 @@ export default function Home() {
   const {
     projects,
     setProjects,
+    renamingStepProjectId,
     renamingProjectId,
     renamingStepId,
     renamingStepName,
     deletingStepId,
     deletingStepProjectId,
     closeDeleteStepModal,
-    openRenameModal,
-    closeRenameModal,
+    openRenameStepModal,
+    closeRenameStepModal,
     updateStepTitle,
   } = useProjectStore();
 
@@ -62,7 +62,7 @@ export default function Home() {
     ) return;
 
     updateStepTitle(renamingProjectId, renamingStepId, newTitle);
-    closeRenameModal();
+    closeRenameStepModal();
   };
 
   if (!user) return null;
@@ -96,11 +96,11 @@ export default function Home() {
         />
 
         <RenameStepModal
-          projectId={renamingProjectId}
+          projectId={renamingStepProjectId}
           stepId={renamingStepId}
           stepName={renamingStepName}
           isOpen={renamingStepId !== null}
-          onClose={closeRenameModal}
+          onClose={closeRenameStepModal}
           onSuccess={handleRenameSuccess}
         />
 
@@ -109,6 +109,9 @@ export default function Home() {
         projectId={deletingStepProjectId}
         stepId={deletingStepId}
         onClose={closeDeleteStepModal}
+        />
+
+        <RenameProjectModal
         />
       </main>
     </>

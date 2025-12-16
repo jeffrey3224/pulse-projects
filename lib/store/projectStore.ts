@@ -17,17 +17,23 @@ export interface ProjectStore {
   deleteStep: (token: string, projectId: number, stepId: number) => void;
 
   deletingStepId: number | null;
-
-  renamingProjectId: number | null;
+  renamingStepProjectId: number | null;
   renamingStepId: number | null;
   renamingStepName: string | null;
   deletingStepProjectId: number | null;
+  renamingProjectName: string | null;
+  renamingProjectId: number | null;
 
   activeStep: number | null;
+  activeProject: number | null;
   setActiveStep: (stepId: number | null) => void;
+  setActiveProject: (projectId: number | null) => void;
 
-  openRenameModal: (projectId: number, stepId: number, stepName: string) => void;
-  closeRenameModal: () => void;
+  openRenameStepModal: (projectId: number, stepId: number, stepName: string) => void;
+  closeRenameStepModal: () => void;
+
+  openRenameProjectModal: (projectId: number, projectName: string) => void;
+  closeRenameProjectModal: () => void;
 
   completeProject: (token: string, projectId: number) => void;
 }
@@ -74,6 +80,10 @@ export const useProjectStore = create<ProjectStore>((set) => ({
 
     activeStep: null,
     setActiveStep: (stepId) => set({ activeStep: stepId }),
+
+    activeProject: null,
+    setActiveProject: (projectId) => set({ activeProject: projectId }),
+
 
     toggleStepCompletion: async (token, projectId, stepId, stepsMenu) => {
       if (!token) return;
@@ -128,22 +138,24 @@ export const useProjectStore = create<ProjectStore>((set) => ({
     console.error(err);}
   },
     
-  renamingProjectId: null,
+  renamingStepProjectId: null,
   renamingStepId: null,
   renamingStepName: null,
   deletingStepId: null,
   deletingStepProjectId: null,
+  renamingProjectId: null,
+  renamingProjectName: null,
 
-  openRenameModal: (projectId, stepId, stepName) =>
+  openRenameStepModal: (projectId, stepId, stepName) =>
     set({
-      renamingProjectId: projectId,
+      renamingStepProjectId: projectId,
       renamingStepId: stepId,
       renamingStepName: stepName,
     }),
 
-  closeRenameModal: () =>
+  closeRenameStepModal: () =>
     set({
-      renamingProjectId: null,
+      renamingStepProjectId: null,
       renamingStepId: null,
       renamingStepName: null,
     }),
@@ -156,6 +168,18 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   closeDeleteStepModal: () => set({
       deletingStepId: null
   }),
+
+  openRenameProjectModal: (projectId, projectName) => 
+    set({
+      renamingProjectId: projectId,
+      renamingProjectName: projectName,
+    }),
+
+  closeRenameProjectModal: () => 
+    set({
+      renamingProjectId: null,
+      renamingProjectName: null,
+    }),
 
   completeProject: async (token: string, projectId: number) => {
     if (!token) return;
