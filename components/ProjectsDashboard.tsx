@@ -13,6 +13,7 @@ import { fetchProjects } from "@/lib/api/projects";
 import Link from "next/link";
 import ProjectsBarGraph from "./ProjectBarGraph";
 import ProjectLineGraph from "./ProjectLineGraph";
+import { Project } from "@/lib/types/projects";
 
 export default function ProjectsDashboard() {
   const { token } = useAuth();
@@ -21,12 +22,13 @@ export default function ProjectsDashboard() {
     toggleStepCompletion,
     activeStep,
     setActiveStep,
+    activeProject,
+    setActiveProject,
     openDeleteStepModal,
   } = useProjectStore();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [projectMenu, setProjectMenu] = useState<Record<number, boolean>>({});
   const { projects, setProjects } = useProjectStore();
   const [sorting, setSorting] = useState<string>("oldest");
 
@@ -69,10 +71,11 @@ export default function ProjectsDashboard() {
   if (error) return <p className="text-red-500">{error}</p>;
   if (!projects.length) return <p className="text-xl text-center pb-10">Start by creating a new project!</p>;
 
-  const handleMenu = (id: number) =>
-    setProjectMenu((prev) => ({ ...prev, [id]: !prev[id] }));
+  const handleMenu = (id: number) => {
+    setActiveProject(activeProject === id ? null : id);
+  };
 
-  const sortingAlg = (a, b) => {
+  const sortingAlg = (a: Project, b: Project) => {
     if (sorting === "newest") {
       return b.id - a.id;
     }
@@ -180,7 +183,7 @@ export default function ProjectsDashboard() {
               </div>
             )}
 
-            {projectMenu[project.id] && <ProjectMenu id={project.id} name={project.title} />}
+            {activeProject == project.id && <ProjectMenu id={project.id} name={project.title} />}
             
           </div>
           

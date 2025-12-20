@@ -70,7 +70,7 @@ export default function Home() {
   return (
     <>
       <NavBar />
-      <main className="bg-zinc-800 w-full h-full">
+      <main className="bg-zinc-800 w-full h-full mt-25">
         <div className="px-15 py-5 flex flex-row justify-between">
           <h1 className="text-white text-5xl font-bold">
             Hello, {user.name}!

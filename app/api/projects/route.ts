@@ -67,7 +67,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { projectId: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { projectId: string } }
+) {
   try {
     const authHeader = req.headers.get("authorization");
     if (!authHeader) {
@@ -78,13 +81,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { projectId:
     const payload = verifyToken(token);
     const { projectId } = params;
     const body = await req.json();
-    const { completed } = body; 
+    const { completed, title } = body;
 
-    const completedAt = completed ? new Date() : null;
+    const updatedData: { completedAt?: Date | null; title?: string } = {};
+
+    if (completed !== undefined) updatedData.completedAt = completed ? new Date() : null;
+    if (title !== undefined) updatedData.title = title; 
 
     const updated = await db
       .update(projects)
-      .set({ completedAt })
+      .set(updatedData)
       .where(eq(projects.id, Number(projectId)))
       .returning();
 
@@ -98,6 +104,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { projectId:
     return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
   }
 }
+
 
 
 

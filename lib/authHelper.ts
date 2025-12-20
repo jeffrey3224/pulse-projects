@@ -28,17 +28,36 @@ export async function authenticateProject(req: NextRequest, projectId: number) {
   return { projectId, userId: payload.id };
 }
 
-export async function authenticateProjectStep(req: NextRequest, projectId: number, stepId: number) {
+export async function authenticateProjectStep(
+  req: NextRequest,
+  projectId: number,
+  stepId: number
+) {
   const authResult = await authenticateProject(req, projectId);
-  if ("error" in authResult) return { error: authResult.error };
+
+  if ("error" in authResult) {
+    throw new Error(authResult.error);
+  }
 
   const step = await db
     .select()
     .from(steps)
-    .where(and(eq(steps.id, stepId), eq(steps.projectId, projectId)));
+    .where(
+      and(
+        eq(steps.id, stepId),
+        eq(steps.projectId, projectId)
+      )
+    );
 
-  if (step.length === 0) return { error: "Step not found" };
+  if (step.length === 0) {
+    throw new Error("Step not found");
+  }
 
-  return { projectId, stepId, userId: authResult.userId };
+  return {
+    projectId,
+    stepId,
+    userId: authResult.userId,
+  };
 }
+
 

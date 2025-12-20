@@ -17,7 +17,7 @@ export default function ProjectPage() {
     return (
       <>
         <NavBar />
-        <div className="p-6">
+        <div className="p-6 mt-25">
           <h1 className="text-xl">
             Project not found.
           </h1>
@@ -29,7 +29,7 @@ export default function ProjectPage() {
   return (
     <>
       <NavBar />
-      <h1>{project.title} </h1>
+      <h1 className="mt-25">{project.title} </h1>
     </>
   )
 }

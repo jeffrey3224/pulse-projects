@@ -12,6 +12,7 @@ export default function RenameProjectModal() {
     projects,
     setProjects,
     closeRenameProjectModal,
+    setActiveProject
   } = useProjectStore();
 
   const [newName, setNewName] = useState("");
@@ -37,13 +38,21 @@ export default function RenameProjectModal() {
         p.id === renamingProjectId ? { ...p, name: newName } : p
       );
       setProjects(updatedProjects);
-    } catch (err) {
+    } 
+      catch (err) {
       console.error("Failed to rename project:", err);
-    } finally {
+    } 
+      finally {
       setLoading(false);
       closeRenameProjectModal();
+      setActiveProject(null);
     }
   };
+
+  const handleClose = () => {
+    closeRenameProjectModal();
+    setActiveProject(null);
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/75 z-50">
@@ -64,7 +73,7 @@ export default function RenameProjectModal() {
           <div className="flex justify-end gap-2">
             <button
               type="button"
-              onClick={closeRenameProjectModal}
+              onClick={handleClose}
               className="px-4 py-2 rounded bg-zinc-700"
             >
               Cancel
