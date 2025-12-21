@@ -1,6 +1,7 @@
+"use client"
+
 import Image from "next/image"
 import { IoHomeSharp, IoCalendar } from "react-icons/io5";
-import { GrProjects } from "react-icons/gr";
 import { FaUser } from "react-icons/fa";
 import Link from "next/link";
 import { useState } from "react";

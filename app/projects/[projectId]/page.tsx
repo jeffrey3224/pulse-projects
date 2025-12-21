@@ -1,35 +1,19 @@
-"use client"
-
 import NavBar from "@/components/NavBar";
-import { useProjectStore } from "@/lib/store/projectStore";
-import { useParams } from "next/navigation";
+import ServerProjectPage from "@/components/ServerProjectPage";
 
-export default function ProjectPage() {
+interface PageProps {
+  params: { projectId: string };
+}
 
-  const {projects} = useProjectStore();
-  const params = useParams();
-
-  const projectId = Number(params.projectId);
-
-  const project = projects.find((p) => p.id === projectId);
-
-  if (!project) {
-    return (
-      <>
-        <NavBar />
-        <div className="p-6 mt-25">
-          <h1 className="text-xl">
-            Project not found.
-          </h1>
-        </div>
-      </>
-    );
-  }
+export default async function ProjectPage({ params }: PageProps) {
+  // Ensure params.projectId is accessed properly
+  const projectId = Number(params.projectId); 
+  if (isNaN(projectId)) return <p>Invalid project ID</p>;
 
   return (
     <>
-      <NavBar />
-      <h1 className="mt-25">{project.title} </h1>
+      <NavBar /> {/* client component */}
+      <ServerProjectPage projectId={projectId} />
     </>
-  )
+  );
 }

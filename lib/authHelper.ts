@@ -13,7 +13,7 @@ export async function authenticateProject(req: NextRequest, projectId: number) {
   const token = authHeader.split(" ")[1];
   let payload;
   try {
-    payload = verifyToken(token); // should return { id: number, ... }
+    payload = verifyToken(token);
   } catch (err) {
     return { error: "Unauthorized" };
   }
