@@ -21,7 +21,6 @@ export async function getProjectById(projectId: number): Promise<Project | null>
 
     const project: Project = {
       ...projectRow[0],
-      // Convert timestamps to strings safely
       createdAt: projectRow[0].createdAt?.toISOString() ?? null,
       completedAt: projectRow[0].completedAt?.toISOString() ?? null,
       dueDate: projectRow[0].dueDate?.toString() ?? undefined,
