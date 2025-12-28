@@ -23,7 +23,6 @@ export interface ProjectStore {
   deletingStepProjectId: number | null;
   renamingProjectName: string | null;
   renamingProjectId: number | null;
-
   activeStep: number | null;
   activeProject: number | null;
   setActiveStep: (stepId: number | null) => void;

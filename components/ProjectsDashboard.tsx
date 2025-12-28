@@ -31,6 +31,7 @@ export default function ProjectsDashboard() {
   const [error, setError] = useState<string | null>(null);
   const { projects, setProjects } = useProjectStore();
   const [sorting, setSorting] = useState<string>("oldest");
+  const today = new Date();
 
   useEffect(() => {
     async function fetchProjectsData() {
@@ -130,7 +131,12 @@ export default function ProjectsDashboard() {
               </button>
             </div>
 
-            {project.dueDate && <p className="text-left mb-3">Due: {project.dueDate}</p>}
+            {project.dueDate && 
+              <p className={`text-left mb-3 ${new Date(project.dueDate) < today ? "text-red-600" : "text-white"}`}>
+                Due: {new Date(project.dueDate).toLocaleDateString()}
+              </p>
+            }
+
             <p className="text-md font-base">{project.description}</p>
 
             {project.steps?.length > 0 && (

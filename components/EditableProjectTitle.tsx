@@ -54,7 +54,7 @@ export default function EditableProjectTitle({
 
   return (
     <h1
-      className="text-4xl font-bold cursor-text hover:opacity-80"
+      className="text-5xl font-bold cursor-text hover:opacity-80"
       onClick={() => setEditing(true)}
       title="Click to edit"
     >

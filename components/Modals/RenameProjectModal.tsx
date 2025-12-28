@@ -12,7 +12,7 @@ export default function RenameProjectModal() {
     projects,
     setProjects,
     closeRenameProjectModal,
-    setActiveProject
+    setActiveProject,
   } = useProjectStore();
 
   const [newName, setNewName] = useState("");
@@ -31,11 +31,10 @@ export default function RenameProjectModal() {
     try {
       setLoading(true);
 
-
       await apiRenameProject(token, renamingProjectId, newName);
 
       const updatedProjects = projects.map((p) =>
-        p.id === renamingProjectId ? { ...p, name: newName } : p
+        p.id === renamingProjectId ? { ...p, title: newName } : p
       );
       setProjects(updatedProjects);
     } 
@@ -44,8 +43,7 @@ export default function RenameProjectModal() {
     } 
       finally {
       setLoading(false);
-      closeRenameProjectModal();
-      setActiveProject(null);
+      handleClose();
     }
   };
 
