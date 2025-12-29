@@ -8,14 +8,14 @@ import { useAuth } from "./AuthContext";
 
 export async function authenticateProject(req: NextRequest, projectId: number) {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader) return { error: "Unauthorized" };
+  if (!authHeader) throw new Error("Unauthorized");
 
   const token = authHeader.split(" ")[1];
   let payload;
   try {
     payload = verifyToken(token);
   } catch (err) {
-    return { error: "Unauthorized" };
+   throw new Error("Unauthorized");
   }
 
   const project = await db
@@ -23,7 +23,7 @@ export async function authenticateProject(req: NextRequest, projectId: number) {
     .from(projects)
     .where(and(eq(projects.id, projectId), eq(projects.userId, payload.id)));
 
-  if (project.length === 0) return { error: "Unauthorized" };
+  if (project.length === 0) throw new Error("Unauthorized");
 
   return { projectId, userId: payload.id };
 }
@@ -34,10 +34,6 @@ export async function authenticateProjectStep(
   stepId: number
 ) {
   const authResult = await authenticateProject(req, projectId);
-
-  if ("error" in authResult) {
-    throw new Error(authResult.error);
-  }
 
   const step = await db
     .select()

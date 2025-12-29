@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { Project } from "@/lib/types/projects";
 import DeleteStepModal from "@/components/Modals/DeleteStepModal";
 import RenameProjectModal from "@/components/Modals/RenameProjectModal";
+import AddStepModal from "@/components/Modals/AddStepModal";
 
 
 export default function Home() {
@@ -23,6 +24,8 @@ export default function Home() {
   const {
     projects,
     setProjects,
+    activeProject,
+    activeProjectAddingStep,
     renamingStepProjectId,
     renamingProjectId,
     renamingStepId,
@@ -31,8 +34,10 @@ export default function Home() {
     deletingStepProjectId,
     closeDeleteStepModal,
     openRenameStepModal,
+    closeAddStepModal,
     closeRenameStepModal,
     updateStepTitle,
+    setShowAnalytics,
   } = useProjectStore();
 
   useEffect(() => {
@@ -65,6 +70,7 @@ export default function Home() {
     closeRenameStepModal();
   };
 
+
   if (!user) return null;
 
   return (
@@ -75,13 +81,22 @@ export default function Home() {
           <h1 className="text-white text-5xl font-bold">
             Hello, {user.name}!
           </h1>
-          <button
-            className="bg-primary font-bold text-black px-3 rounded-2xl hover:bg-transparent hover:border-2
-            hover:text-primary hover:border-primary hover:cursor-pointer"
-            onClick={() => setShowAddProjectsModal(true)}
-          >
-            Add Project
-          </button>
+          <div className="space-x-5">
+            <button
+              className="bg-primary h-10 w-30 font-bold text-black px-3 rounded-xl hover:bg-transparent hover:border-2
+              hover:text-primary hover:border-primary hover:cursor-pointer"
+              onClick={() => setShowAddProjectsModal(true)}
+            >
+              Add Project
+            </button>
+            <button 
+              className="bg-primary h-10 w-30 font-bold text-black px-3 rounded-xl hover:bg-transparent hover:border-2
+              hover:text-primary hover:border-primary hover:cursor-pointer"
+              onClick = {(prev) => setShowAnalytics(!prev)}>
+                Analytics
+              </button>
+          </div>
+          
         </div>
 
         <div className="px-15">
@@ -112,6 +127,12 @@ export default function Home() {
         />
 
         <RenameProjectModal
+        />
+
+        <AddStepModal 
+        projectId={activeProject}
+        isOpen={activeProjectAddingStep !== null}
+        onClose={closeAddStepModal}
         />
       </main>
     </>

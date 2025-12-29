@@ -25,6 +25,7 @@ export default function ProjectsDashboard() {
     activeProject,
     setActiveProject,
     openDeleteStepModal,
+    showAnalytics,
   } = useProjectStore();
 
   const [loading, setLoading] = useState(true);
@@ -96,7 +97,7 @@ export default function ProjectsDashboard() {
 
   return (
     <>
-      {!loading && 
+      {(!loading && showAnalytics) &&  
         (
           <div className="flex flex-row gap-5 min-w-[200px] pb-10">
             <ProjectsBarGraph height={300} width={900}/>

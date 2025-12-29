@@ -49,4 +49,24 @@ export async function renameStep(token: string, projectId: number, stepId: numbe
   return response.json();
 }
 
+export async function addStep(token: string, projectId: number, title: string) {
+
+  const response = await fetch(`/api/projects/${projectId}/steps`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ title })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Failed to add step");
+  }
+
+  return response.json();
+
+}
+
 

@@ -1,5 +1,5 @@
 import { verifyToken } from "@/lib/auth";
-import { authenticateProjectStep } from "@/lib/authHelper";
+import { authenticateProjectStep, authenticateProject } from "@/lib/authHelper";
 import { db } from "@/schema/db";
 import { projects, steps } from "@/schema/db/schema";
 import { and, eq } from "drizzle-orm";
@@ -143,3 +143,4 @@ export async function DELETE(
     );
   }
 }
+
