@@ -6,13 +6,13 @@ interface PageProps {
 }
 
 export default async function ProjectPage({ params }: PageProps) {
-  // Ensure params.projectId is accessed properly
+
   const projectId = Number(params.projectId); 
   if (isNaN(projectId)) return <p>Invalid project ID</p>;
 
   return (
     <>
-      <NavBar /> {/* client component */}
+      <NavBar /> 
       <ServerProjectPage projectId={projectId} />
     </>
   );

@@ -28,8 +28,8 @@ export interface ProjectStore {
   openRenameStepModal: (projectId: number, stepId: number, stepName: string) => void;
   closeRenameStepModal: () => void;
   showAnalytics: boolean; 
-  setShowAnalytics: (input: boolean) => void;
-
+  setShowAnalytics: () => void;
+ 
   openRenameProjectModal: (projectId: number, projectName: string) => void;
   closeRenameProjectModal: () => void;
 
@@ -147,8 +147,8 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   renamingProjectName: null,
   showAnalytics: true,
 
-  setShowAnalytics: (input: boolean) => 
-    set({ showAnalytics: input }),
+  setShowAnalytics: () =>
+    set((state) => ({ showAnalytics: !state.showAnalytics })),  
 
   openRenameStepModal: (projectId, stepId, stepName) =>
     set({
@@ -208,5 +208,6 @@ export const useProjectStore = create<ProjectStore>((set) => ({
     } catch (err) {
       console.error(err);
     }
-  }
+  },
+
 }));

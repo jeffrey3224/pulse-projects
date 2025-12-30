@@ -22,7 +22,6 @@ export default function Home() {
   const [showAddProjectsModal, setShowAddProjectsModal] = useState(false);
 
   const {
-    projects,
     setProjects,
     activeProject,
     activeProjectAddingStep,
@@ -33,10 +32,10 @@ export default function Home() {
     deletingStepId,
     deletingStepProjectId,
     closeDeleteStepModal,
-    openRenameStepModal,
     closeAddStepModal,
     closeRenameStepModal,
     updateStepTitle,
+    showAnalytics,
     setShowAnalytics,
   } = useProjectStore();
 
@@ -55,8 +54,7 @@ export default function Home() {
         return { ...project, steps }; // attach steps directly to the project
       })
     );
-  
-    // Update Zustand store
+
     setProjects(projectsWithSteps);
   };
 
@@ -90,9 +88,8 @@ export default function Home() {
               Add Project
             </button>
             <button 
-              className="bg-primary h-10 w-30 font-bold text-black px-3 rounded-xl hover:bg-transparent hover:border-2
-              hover:text-primary hover:border-primary hover:cursor-pointer"
-              onClick = {(prev) => setShowAnalytics(!prev)}>
+              className= {`${showAnalytics ? "bg-primary text-black" : "text-primary border-primary border-2"} h-10 w-30 px-3 rounded-xl font-bold hover:cursor-pointer `}
+              onClick = {setShowAnalytics}>
                 Analytics
               </button>
           </div>
@@ -102,7 +99,6 @@ export default function Home() {
         <div className="px-15">
           <ProjectsDashboard />
         </div>
-        
 
         <AddProjectModal
           isOpen={showAddProjectsModal}
