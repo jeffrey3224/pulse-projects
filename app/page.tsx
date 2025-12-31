@@ -51,7 +51,7 @@ export default function Home() {
     const projectsWithSteps: Project[] = await Promise.all(
       projectsData.map(async (project) => {
         const steps = await fetchSteps(token, project.id);
-        return { ...project, steps }; // attach steps directly to the project
+        return { ...project, steps }; 
       })
     );
 

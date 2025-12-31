@@ -18,15 +18,21 @@ export async function PATCH(
     const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
 
-    // 2. Parse request
     const { projectId } = params;
     const body = await req.json();
-    const { title, completed } = body;
+    const { title, completed, dueDate } = body;
 
-    // 3. Build update object
-    const updatedData: { title?: string; completedAt?: Date | null } = {};
+    const updatedData: { title?: string; completedAt?: Date | null; dueDate?: string | null } = {};
     if (title !== undefined) updatedData.title = title;
     if (completed !== undefined) updatedData.completedAt = completed ? new Date() : null;
+    if (dueDate !== undefined) {
+      const d = new Date(dueDate);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      updatedData.dueDate = `${yyyy}-${mm}-${dd}`;
+    }
+    
 
     // 4. Update project in DB
     const updated = await db
