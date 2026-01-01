@@ -19,7 +19,7 @@ export default function NavBar() {
 
   return (
     <nav className="w-full flex flex-row py-5 fixed top-0 left-0 bg-dark-gray z-20">
-      <div className="flex flex-row px-15 justify-between w-full mx-auto">
+      <div className="flex flex-row px-7 lg:px-15 justify-between w-full mx-auto">
         <Image
           src="/pulse-main.svg"
           alt="pulse main logo"

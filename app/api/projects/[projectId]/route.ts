@@ -9,32 +9,19 @@ export async function PATCH(
   { params }: { params: { projectId: string } }
 ) {
   try {
-    // 1. Check authorization
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
 
     const { projectId } = params;
     const body = await req.json();
-    const { title, completed, dueDate } = body;
+    const { dueDate } = body;
 
-    const updatedData: { title?: string; completedAt?: Date | null; dueDate?: string | null } = {};
-    if (title !== undefined) updatedData.title = title;
-    if (completed !== undefined) updatedData.completedAt = completed ? new Date() : null;
-    if (dueDate !== undefined) {
-      const d = new Date(dueDate);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      updatedData.dueDate = `${yyyy}-${mm}-${dd}`;
-    }
-    
+    const updatedData: { dueDate?: string | null } = {};
+    if (dueDate !== undefined) updatedData.dueDate = dueDate; // Drizzle will convert string to date
 
-    // 4. Update project in DB
     const updated = await db
       .update(projects)
       .set(updatedData)

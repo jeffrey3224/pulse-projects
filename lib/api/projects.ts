@@ -93,19 +93,18 @@ export async function renameProject(token: string, projectId: number, title: str
   return response.json();
 }
 
-export async function updateDueDate(token: string, projectId: number, newDate: Date) {
+export async function updateDueDate(token: string, projectId: number, newDate: string) {
   const response = await fetch(`/api/projects/${projectId}`, {
     method: "PATCH",
     headers: {
-      "Authorization": `Bearer ${token}`, 
+      "Authorization": `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ dueDate: newDate.toISOString() })
+    body: JSON.stringify({ dueDate: newDate }),
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error?.error || "Failed to update project due date");
+    throw new Error("Failed to update project due date");
   }
 
   return response.json();

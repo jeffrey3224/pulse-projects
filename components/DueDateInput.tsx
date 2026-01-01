@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { FaCalendarAlt } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -14,25 +14,43 @@ interface DueDateProps {
 export default function DueDateInput({ id, dueDate }: DueDateProps) {
   const today = new Date();
   const { token } = useAuth();
-  
-  const [value, setValue] = useState<Date>(dueDate ? new Date(dueDate) : new Date());
+
+  // Parse YYYY-MM-DD string from DB and normalize to local midnight
+  const parseDateFromDB = (dateStr: string) => {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const [value, setValue] = useState<Date>(
+    dueDate ? parseDateFromDB(dueDate) : (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()
+  );
+
   const [showCalendar, setShowCalendar] = useState(false);
 
-  useEffect(() => {
-    if (dueDate) setValue(new Date(dueDate));
-  }, [dueDate]);
+  const handleChange = async (date: Date | Date[] | null) => {
+    if (!date || Array.isArray(date)) return;
 
-  const handleUpdate: CalendarProps['onChange'] = async (selected) => {
-    if (!selected || Array.isArray(selected)) return; // ignore null or range selections
-    setValue(selected);
+    const normalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    setValue(normalized);
     setShowCalendar(false);
 
+    const dateStr = normalized.toISOString().split("T")[0];
+
     try {
-      await updateDueDate(token!, id, selected);
+      await updateDueDate(token!, id, dateStr);
     } catch (err) {
       console.error("Failed to update due date:", err);
     }
   };
+
+  useEffect(() => {
+    if (dueDate) {
+      const newDate = parseDateFromDB(dueDate);
+      setValue(newDate);
+    }
+  }, [dueDate]);
 
   return (
     <>
@@ -46,11 +64,16 @@ export default function DueDateInput({ id, dueDate }: DueDateProps) {
       </div>
 
       {showCalendar && (
-        <div className="w-[250px] absolute z-10 bg-zinc-800 p-2">
+        <div className="w-[250px] absolute z-10 bg-dark-gray p-2 rounded-lg border-[1px] border-zinc-700 shadow-2xl">
           <Calendar
             value={value}
-            onChange={handleUpdate}
+            onChange={handleChange}
             minDate={today}
+            tileClassName={({ date, view }) =>
+              view === "month" && date.getTime() === value.getTime()
+                ? "bg-primary text-black rounded"
+                : ""
+            }
           />
         </div>
       )}

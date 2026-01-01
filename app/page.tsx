@@ -75,7 +75,7 @@ export default function Home() {
     <>
       <NavBar />
       <main className="bg-zinc-800 w-full h-full mt-25">
-        <div className="px-15 py-5 flex flex-row justify-between">
+        <div className="px-7 lg:px-15 py-5 flex flex-row justify-between">
           <h1 className="text-white text-5xl font-bold">
             Hello, {user.name}!
           </h1>
@@ -96,7 +96,7 @@ export default function Home() {
           
         </div>
 
-        <div className="px-15">
+        <div className="px-7 lg:px-15">
           <ProjectsDashboard />
         </div>
 
