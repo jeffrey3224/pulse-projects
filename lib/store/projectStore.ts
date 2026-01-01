@@ -29,6 +29,7 @@ export interface ProjectStore {
   closeRenameStepModal: () => void;
   showAnalytics: boolean; 
   setShowAnalytics: () => void;
+
  
   openRenameProjectModal: (projectId: number, projectName: string) => void;
   closeRenameProjectModal: () => void;
@@ -85,39 +86,48 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   activeProjectAddingStep: null,
   setAddingStepActiveProject: (projectId) => set({ activeProjectAddingStep: projectId }),
 
-    toggleStepCompletion: async (token, projectId, stepId, stepsMenu) => {
-      if (!token) return;
-    
-      let updatedStatus: boolean | undefined;
-    
-      set((state) => ({
+  toggleStepCompletion: async (token, projectId, stepId, stepsMenu) => {
+    if (!token) return;
+  
+    let updatedStatus: boolean | undefined;
+  
+    set((state) => {
+      return {
         projects: state.projects.map((project) => {
           if (project.id !== projectId) return project;
-    
+  
+          const updatedSteps = project.steps?.map((step) => {
+            if (step.id !== stepId) return step;
+  
+            updatedStatus = !step.completed;
+            return { ...step, completed: updatedStatus };
+          }) ?? [];
+  
+          const allStepsComplete =
+            updatedSteps.length > 0 &&
+            updatedSteps.every((step) => step.completed);
+  
           return {
             ...project,
-            steps: project.steps?.map((step) => {
-              
-              if (step.id !== stepId) return step;
-              updatedStatus = !step.completed; 
-
-              return { ...step, completed: updatedStatus };
-
-            }),
+            steps: updatedSteps,
+            completed: allStepsComplete,
           };
         }),
+  
         activeStep: stepsMenu ? null : state.activeStep,
-      }));
-      
-      if (updatedStatus !== undefined) {
-        try {
-          await updateStepStatus(token, projectId, stepId, updatedStatus);
-        } catch (err) {
-          console.error("Failed to update step status", err);
-          // Optional: rollback UI change here if needed
-        }
+      };
+    });
+  
+    if (updatedStatus !== undefined) {
+      try {
+        await updateStepStatus(token, projectId, stepId, updatedStatus);
+      } catch (err) {
+        console.error("Failed to update step status", err);
+        // Optional rollback here
       }
-    },
+    }
+  },
+  
 
   deleteStep: async (token, projectId, stepId) => {
     if (!token) return;
@@ -146,6 +156,7 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   renamingProjectId: null,
   renamingProjectName: null,
   showAnalytics: true,
+  allStepsComplete: false,
 
   setShowAnalytics: () =>
     set((state) => ({ showAnalytics: !state.showAnalytics })),  

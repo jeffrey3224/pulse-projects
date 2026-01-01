@@ -4,6 +4,7 @@ import EditableProjectTitle from "./EditableProjectTitle";
 import DueDateInput from "./DueDateInput";
 import { FaCheckCircle } from "react-icons/fa";
 import { AiFillExclamationCircle } from "react-icons/ai";
+import ClientProjectSteps from "./ClientProjectSteps";
 
 interface ServerProjectPageProps {
   projectId: number;
@@ -50,22 +51,7 @@ export default async function ServerProjectPage({ projectId }: ServerProjectPage
           <h2 className="text-xl font-semibold mb-3">Steps</h2>
 
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-            {project.steps
-              .sort((a, b) => a.id - b.id)
-              .map((step) => (
-                <div
-                  key={step.id}
-                  className="flex justify-between items-center border-b border-zinc-700 py-2"
-                >
-                  <p>{step.title}</p>
-
-                  {step.completed ? (
-                    <FaCheckCircle className="text-green-500" size={20} />
-                  ) : (
-                    <AiFillExclamationCircle className="text-yellow-400" size={20} />
-                  )}
-                </div>
-              ))}
+              <ClientProjectSteps projectId={project.id}/>
           </div>
         </div>
 
