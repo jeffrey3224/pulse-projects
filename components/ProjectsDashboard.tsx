@@ -82,7 +82,7 @@ export default function ProjectsDashboard() {
     return new Date(year, month - 1, day);
   };
 
-  const sortingAlg = (a: Project, b: Project) => {
+  const sortingAlg = (a: Project, b: Project): number => {
     if (sorting === "newest") {
       return b.id - a.id;
     }
@@ -96,7 +96,14 @@ export default function ProjectsDashboard() {
       const bTime = b.dueDate ? new Date(b.dueDate).getTime() : 0;
       return aTime - bTime;
     }
+
+    if (sorting === "incomplete") {
+      const aCompleted = a.steps.filter(s => s.completed).length;
+      const bCompleted = b.steps.filter(s => s.completed).length;
   
+      return aCompleted - bCompleted;
+    }
+    
     return 0;
   };
 
@@ -117,6 +124,7 @@ export default function ProjectsDashboard() {
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="due-date">Due Date</option>
+          <option value="incomplete">Incomplete</option>
         </select> 
       </div>
 
@@ -175,7 +183,7 @@ export default function ProjectsDashboard() {
                         {activeStep === step.id && (
                           <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-2 right-8 z-20 shadow-2xl">
                             <div className="flex flex-col">
-                              <div className="border-t border-zinc-700 hover:bg-zinc-800">
+                              <div className="hover:bg-zinc-800">
                                 <button
                                   className="text-left py-1 px-2 w-full h-full"
                                   onClick={() =>

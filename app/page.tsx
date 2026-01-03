@@ -129,6 +129,7 @@ export default function Home() {
         projectId={activeProject}
         isOpen={activeProjectAddingStep !== null}
         onClose={closeAddStepModal}
+        onOptimisticAdd={undefined} 
         />
       </main>
     </>

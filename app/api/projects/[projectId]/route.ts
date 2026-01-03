@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/schema/db";
 import { projects } from "@/schema/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { verifyToken } from "@/lib/auth";
 
 export async function PATCH(
@@ -10,22 +10,39 @@ export async function PATCH(
 ) {
   try {
     const authHeader = req.headers.get("authorization");
-    if (!authHeader) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const token = authHeader.split(" ")[1];
     const payload = verifyToken(token);
 
-    const { projectId } = params;
     const body = await req.json();
-    const { dueDate } = body;
+    const { dueDate, title, description } = body;
 
-    const updatedData: { dueDate?: string | null } = {};
-    if (dueDate !== undefined) updatedData.dueDate = dueDate; // Drizzle will convert string to date
+    const updatedData: {
+      title?: string;
+      description?: string;
+      dueDate?: string | null;
+    } = {};
+
+    if (title !== undefined) updatedData.title = title;
+    if (description !== undefined) updatedData.description = description;
+    if (dueDate !== undefined) updatedData.dueDate = dueDate;
+
+    if (Object.keys(updatedData).length === 0) {
+      return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    }
 
     const updated = await db
       .update(projects)
       .set(updatedData)
-      .where(eq(projects.id, Number(projectId)))
+      .where(
+        and(
+          eq(projects.id, Number(params.projectId)),
+          eq(projects.userId, payload.id)
+        )
+      )
       .returning();
 
     if (!updated.length) {
@@ -39,17 +56,28 @@ export async function PATCH(
   }
 }
 
-// Optional: GET for fetching a single project
 export async function GET(
   req: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
   try {
-    const { projectId } = params;
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const payload = verifyToken(token);
+
     const project = await db
       .select()
       .from(projects)
-      .where(eq(projects.id, Number(projectId)));
+      .where(
+        and(
+          eq(projects.id, Number(params.projectId)),
+          eq(projects.userId, payload.id)
+        )
+      );
 
     if (!project.length) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });

@@ -2,25 +2,31 @@ import { fetchProjects } from "@/lib/api/projects";
 import { addStep } from "@/lib/api/steps";
 import { useAuth } from "@/lib/AuthContext";
 import { useProjectStore } from "@/lib/store/projectStore";
+import { Step } from "@/lib/types/projects";
 import { useState } from "react";
 
 type Props = {
   projectId: number | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (newTitle: string) => void;
+  onOptimisticAdd?: (title: string) => void; 
 }
 
-export default function AddStepModal({projectId, isOpen, onClose}: Props) {
+
+export default function AddStepModal({projectId, isOpen, onClose, onOptimisticAdd}: Props) {
 
   const [title, setTitle] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
   const { token } = useAuth();
-  const{ setAddingStepActiveProject, setActiveProject} = useProjectStore();
+  const{ setAddingStepActiveProject, setActiveProject } = useProjectStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token || !projectId) return ;
+
+    if (onOptimisticAdd) {
+      onOptimisticAdd(title);
+    }
 
     try {
       setLoading(true);

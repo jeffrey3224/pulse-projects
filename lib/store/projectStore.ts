@@ -11,6 +11,8 @@ export interface ProjectStore {
   openDeleteStepModal: (stepId: number, projectId: number) => void;
   closeDeleteStepModal: () => void;
   closeAddStepModal: () => void;
+  setAddStepName: (stepName: string) => void;
+  addStepName: string | null;
   activeProjectAddingStep: number | null;
   deleteStep: (token: string, projectId: number, stepId: number) => void;
   deletingStepId: number | null;
@@ -29,8 +31,6 @@ export interface ProjectStore {
   closeRenameStepModal: () => void;
   showAnalytics: boolean; 
   setShowAnalytics: () => void;
-
- 
   openRenameProjectModal: (projectId: number, projectName: string) => void;
   closeRenameProjectModal: () => void;
 
@@ -63,6 +63,8 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   
   setProjects: (projects) => set({ projects }),
 
+  setAddStepName: (stepName: string) => set({addStepName: stepName}),
+
   updateStepTitle: (projectId, stepId, newTitle) =>
     set((state) => ({
       projects: state.projects.map((project) =>
@@ -87,6 +89,8 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   setAddingStepActiveProject: (projectId) => set({ activeProjectAddingStep: projectId }),
 
   toggleStepCompletion: async (token, projectId, stepId, stepsMenu) => {
+    console.log("TOKEN USED:", token);
+    
     if (!token) return;
   
     let updatedStatus: boolean | undefined;
@@ -157,6 +161,7 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   renamingProjectName: null,
   showAnalytics: true,
   allStepsComplete: false,
+  addStepName: null,
 
   setShowAnalytics: () =>
     set((state) => ({ showAnalytics: !state.showAnalytics })),  

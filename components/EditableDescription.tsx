@@ -2,17 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { renameProject } from "@/lib/api/projects";
+import { renameProjectDescription } from "@/lib/api/projects";
 
-export default function EditableProjectTitle({
+export default function EditableProjectDescription({
   projectId,
-  title,
+  description,
 }: {
   projectId: number;
-  title: string;
+  description: string;
 }) {
   const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(title);
+  const [value, setValue] = useState(description);
   const inputRef = useRef<HTMLInputElement>(null);
   const { token } = useAuth();
 
@@ -24,15 +24,15 @@ export default function EditableProjectTitle({
   }, [editing]);
 
   const save = async () => {
-    if (value.trim() && value !== title) {
-      await renameProject(token!, projectId, value);
+    if (value.trim() && value !== description) {
+      await renameProjectDescription(token!, projectId, value);
     }
     setEditing(false);
   };
 
 
   const cancel = () => {
-    setValue(title);
+    setValue(description);
     setEditing(false);
   };
 
@@ -47,14 +47,14 @@ export default function EditableProjectTitle({
           if (e.key === "Enter") save();
           if (e.key === "Escape") cancel();
         }}
-        className="text-4xl font-bold bg-transparent border-b border-zinc-500 outline-none w-full"
+        className="text-lg bg-transparent border-b border-zinc-500 outline-none w-full"
       />
     );
   }
 
   return (
     <h1
-      className="text-5xl font-bold cursor-text hover:opacity-80 pr-5 pb-2"
+      className="text-lg cursor-text hover:opacity-80 pr-5 pb-2"
       onClick={() => setEditing(true)}
       title="Click to edit"
     >

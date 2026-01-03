@@ -87,7 +87,7 @@ export async function renameProject(token: string, projectId: number, title: str
   });
 
   if (!response.ok) {
-    throw new Error("Failed to update project name");
+    throw new Error("Failed to update project name from the back");
   }
 
   return response.json();
@@ -110,7 +110,22 @@ export async function updateDueDate(token: string, projectId: number, newDate: s
   return response.json();
 }
 
+export async function renameProjectDescription(token: string, projectId: number, description: string) {
+  const response = await fetch(`/api/projects/${projectId}`, {
+    method: "PATCH",
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ description: description }),
+  });
 
+  if (!response.ok) {
+    throw new Error("Failed to update project description");
+  }
+
+  return response.json();
+}
 
 
 

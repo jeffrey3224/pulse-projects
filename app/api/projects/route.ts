@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+{/*
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { projectId: string } }
@@ -104,6 +105,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update project" }, { status: 500 });
   }
 }
+  */}
 
 
 
