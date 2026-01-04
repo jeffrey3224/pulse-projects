@@ -20,7 +20,8 @@ export default function ClientProjectSteps({ projectId }: Props) {
   const {
     activeProject,
     activeProjectAddingStep,
-    addStepName,
+    setOptimisticStepAdd,
+    optimisticStepAdd,
     closeAddStepModal,
     setProjects,
     renamingStepProjectId,
@@ -87,11 +88,19 @@ export default function ClientProjectSteps({ projectId }: Props) {
       title,
       completed: false,
     });
+    setOptimisticStepAdd(true);
   };
+
+  const handleStepMenu = (token: string, projectId: number, stepId: number, value: boolean) => {
+    toggleStepCompletion(token!, projectId, stepId, value)
+    setActiveStep(null);
+  }
 
   if (!project) return <p>Loading project...</p>;
 
-  const isComplete = project.steps?.length > 0 && project.steps.every(s => s.completed);
+  const stepsComplete = project.steps?.length > 0 && project.steps.every(s => s.completed);
+
+  const projectComplete = stepsComplete && !optimisticStepAdd;
 
   const steps = project.steps ?? [];
 
@@ -99,18 +108,21 @@ export default function ClientProjectSteps({ projectId }: Props) {
   ? [...steps, optimisticStep]
   : steps;
 
-
   return (
     <>
       {project.steps.length > 0 ? (
         <div className="w-full rounded-lg px-2 mt-2 border-zinc-600 border-[1px]">
-          {displaySteps.sort((a, b) => a.id - b.id).map((step) => (
+          {displaySteps.sort((a, b) => a.id - b.id).map((step, index) => {
+
+            const invertedMenu = index === project.steps.length - 1 || index === project.steps.length - 2;
+
+            return (
             <div
               key={step.id}
               className="flex flex-col justify-between relative border-b-[1px] border-zinc-600  last:border-none py-2"
             >
               <div className="flex items-center justify-between">
-                <p className={`${isComplete ? "text-zinc-600" : ""}`}>{step.title}</p>
+                <p className={`${projectComplete ? "text-zinc-600" : ""}`}>{step.title}</p>
                 <button onClick={() => setActiveStep(activeStep === step.id ? null : step.id)}>
                   {step.completed
                     ? <FaCheckCircle color="green" size={20} />
@@ -119,7 +131,9 @@ export default function ClientProjectSteps({ projectId }: Props) {
               </div>
 
               {activeStep === step.id && (
-                <div className="bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute top-2 right-8 z-20 shadow-2xl">
+                <div className={`bg-dark-gray border-1 border-zinc-700 rounded-lg w-40 absolute z-20 shadow-2xl ${
+                  invertedMenu ? "bottom-5 right-8" : "top-2 right-8"
+                }`}>
                   <div className="flex flex-col">
                     <button
                       className="text-left py-1 px-2 hover:bg-zinc-800"
@@ -129,7 +143,7 @@ export default function ClientProjectSteps({ projectId }: Props) {
                     </button>
                     <button
                       className="text-left py-1 px-2 hover:bg-zinc-800 border-t border-zinc-700 hover:bg-zinc-800"
-                      onClick={() => toggleStepCompletion(token!, projectId, step.id, true)}
+                      onClick={() => handleStepMenu(token!, projectId, step.id, true)}
                     >
                       {step.completed ? "Mark Incomplete" : "Mark Complete"}
                     </button>
@@ -143,7 +157,7 @@ export default function ClientProjectSteps({ projectId }: Props) {
                 </div>
               )}
             </div>
-          ))}
+          )})}
         </div>
       ) : (
         <p>No steps found</p>

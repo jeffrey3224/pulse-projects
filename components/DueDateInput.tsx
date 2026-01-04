@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import Calendar, { CalendarProps } from "react-calendar";
 import { updateDueDate } from "@/lib/api/projects";
 import { useAuth } from "@/lib/AuthContext";
+import { useProjectStore } from "@/lib/store/projectStore";
+import { Step } from "@/lib/types/projects";
 
 interface DueDateProps {
   id: number;
@@ -15,6 +17,8 @@ export default function DueDateInput({ id, dueDate }: DueDateProps) {
 
   const today = new Date();
   const { token } = useAuth();
+  const { projects, optimisticStepAdd } = useProjectStore()
+  const [allStepsComplete, setAllStepsComplete] = useState<boolean | undefined>(undefined);
 
   // Parse YYYY-MM-DD string from DB and normalize to local midnight
   const parseDateFromDB = (dateStr: string) => {
@@ -28,11 +32,19 @@ export default function DueDateInput({ id, dueDate }: DueDateProps) {
     dueDate ? parseDateFromDB(dueDate) : (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })()
   );
   const [localValue, setLocalValue] = useState<Date | null >(null);
-
   const [showCalendar, setShowCalendar] = useState(false);
-
   const displayDate = localValue ?? (dueDate ? parseDateFromDB(dueDate) : null);
+  const project = projects.find(p => p.id === id); 
+  const steps: Step[] = project?.steps ?? [];
 
+  const handleCompleteCheck = () => {
+    setAllStepsComplete(steps.length > 0 && steps.every(s => s.completed));
+  };
+  
+
+  useEffect(() => {
+    handleCompleteCheck()
+  }, [steps]);
 
   const handleChange = async (date: Date | Date[] | null) => {
     if (!date || Array.isArray(date)) return;
@@ -58,20 +70,23 @@ export default function DueDateInput({ id, dueDate }: DueDateProps) {
     }
   }, [dueDate]);
 
+  const pastDueVisible = value < today && !allStepsComplete || value < today && optimisticStepAdd;
+
+
   return (
     <>
       <div className="flex flex-row space-x-3 items-center justify-start mb-3">
         {displayDate ? 
-          <p className={`text-left ${value < today ? "text-red-600" : "text-white"}`}>
+          <p className={`text-left text-lg ${pastDueVisible ? "text-red-600" : "text-white"}`}>
             Due: {value.toLocaleDateString()}
           </p>
           : 
-          <p className="text-zinc-500">
+          <p className="text-zinc-500 text-lg">
             Add Due Date
           </p>
         }
         <button onClick={() => setShowCalendar(prev => !prev)} className="hover:cursor-pointer">
-          <FaCalendarAlt size={18}/>
+          <FaCalendarAlt size={19}/>
         </button>
       </div> 
 

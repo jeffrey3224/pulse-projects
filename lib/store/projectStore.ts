@@ -33,7 +33,8 @@ export interface ProjectStore {
   setShowAnalytics: () => void;
   openRenameProjectModal: (projectId: number, projectName: string) => void;
   closeRenameProjectModal: () => void;
-
+  setOptimisticStepAdd: (value: boolean) => void;
+  optimisticStepAdd: boolean;
   completeProject: (token: string, projectId: number) => void;
 }
 
@@ -89,7 +90,6 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   setAddingStepActiveProject: (projectId) => set({ activeProjectAddingStep: projectId }),
 
   toggleStepCompletion: async (token, projectId, stepId, stepsMenu) => {
-    console.log("TOKEN USED:", token);
     
     if (!token) return;
   
@@ -162,6 +162,9 @@ export const useProjectStore = create<ProjectStore>((set) => ({
   showAnalytics: true,
   allStepsComplete: false,
   addStepName: null,
+  optimisticStepAdd: false,
+
+  setOptimisticStepAdd: (value: boolean) => set({ optimisticStepAdd: value}),
 
   setShowAnalytics: () =>
     set((state) => ({ showAnalytics: !state.showAnalytics })),  

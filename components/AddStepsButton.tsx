@@ -25,7 +25,7 @@ export default function AddStepsButton({projectId}: Props) {
 
   return (
     <button onClick={handleButton}>
-      <FaCirclePlus size={18} className="hover:cursor-pointer"/>
+      <FaCirclePlus size={19} className="hover:cursor-pointer"/>
     </button>
     
   )
